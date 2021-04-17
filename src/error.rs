@@ -5,6 +5,10 @@ pub enum SnowBinErrorTypes {
     DataSizeNotAllowed,
     VerifyHashingNotEnabled,
     CouldNotCreateOrOpenFile,
+    IOWriteError,
+    HeaderTooLong,
+    IOWriterClosed,
+    DataTooLong,
 }
 
 #[derive(Debug)]
@@ -24,6 +28,18 @@ impl SnowBinError {
             }
             SnowBinErrorTypes::CouldNotCreateOrOpenFile => {
                 String::from("Could not create or open the file.")
+            }
+            SnowBinErrorTypes::IOWriteError => {
+                String::from("Could not write to the file.")
+            }
+            SnowBinErrorTypes::HeaderTooLong => {
+                String::from("Header exceeds max length.")
+            }
+            SnowBinErrorTypes::IOWriterClosed => {
+                String::from("Could not write to the file, because the close function was called.")
+            }
+            SnowBinErrorTypes::DataTooLong => {
+                String::from("Data exceeds max length.")
             }
         };
 

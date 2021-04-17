@@ -12,10 +12,10 @@ A binary file format, writer, and reader.
 <br>
 
 - Start with an 8 byte header of "SNOW_BIN".
-- Then 8 bytes showing the snow binary version. (Spec Version)
-- Then 16 bytes showing the max header size in bytes. (At least 8 bytes, max of u32::MAX)
-- Then 1 byte showing the max data size.  (u8::MAX, u16::MAX, u32::MAX, u64::MAX, u128::MAX)
-- 1 byte showing if the data should have a verification hash.
+- Then 8 bytes showing the snow binary version. (Spec Version) (u64)
+- Then 8 bytes showing the max header size in bytes. (At least 8 bytes, max of u32::MAX) (u64)
+- Then 1 byte showing the max data size.  (u8::MAX, u16::MAX, u32::MAX, u64::MAX, ~~u128::MAX~~) (u8)
+- 1 byte showing if the data should have a verification hash. (u8)
 - Then write data:
   - Header of MAX_HEADER_SIZE. (No conflicting header names)
   - Data size of MAX_DATA_SIZE.
