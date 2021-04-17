@@ -10,11 +10,12 @@ homepage = "TODO URL"
 repository = "https://github.com/harmless-tech/snowbinary"
 # license = "MIT License - Copyright (c) 2021 harmless-tech"
 license-file = "LICENSE"
+exclude = [".github/*", "rustfmt.toml", "target/*", ".gitignore", "Cargo.lock"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 #[lib]
 #crate-type = ["lib", "cdylib"]
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 seahash = { version = "4.1.0", optional = true }
