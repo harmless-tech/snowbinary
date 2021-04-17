@@ -1,6 +1,6 @@
 [package]
 name = "snowbinary"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["harmless-tech"]
 edition = "2018"
 description = "A system for writing and reading binary files using its own format."

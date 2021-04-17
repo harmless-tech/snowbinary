@@ -1,6 +1,6 @@
 [package]
 name = "snowbinary_c"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["harmless-tech"]
 edition = "2018"
 description = "A c wrapper for snowbinary."
@@ -15,3 +15,8 @@ crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
 snowbinary = { path = "../.." }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
