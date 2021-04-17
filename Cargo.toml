@@ -4,12 +4,10 @@ version = "0.1.0"
 authors = ["harmless-tech"]
 edition = "2018"
 description = "A system for writing and reading binary files using its own format."
-#documentation = "TODO URL"
 readme = "README.md"
-#homepage = "TODO URL"
 repository = "https://github.com/harmless-tech/snowbinary"
-# license = "MIT License - Copyright (c) 2021 harmless-tech"
-license-file = "LICENSE"
+license = "MIT"
+keywords = ["file"]
 exclude = [".github/*", "rustfmt.toml", "target/*", ".gitignore", "Cargo.lock"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
