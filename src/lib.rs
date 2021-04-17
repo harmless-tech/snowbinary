@@ -9,18 +9,18 @@ pub mod error;
 mod reader;
 mod writer;
 
-const VERSION_SPEC: u64 = 0; // Snow Binary File Format
+pub const VERSION_SPEC: u64 = 0; // Snow Binary File Format
+
+#[cfg(feature = "v_hash")]
+pub const VERIFY_HASHING: bool = true;
+#[cfg(not(feature = "v_hash"))]
+pub const VERIFY_HASHING: bool = false;
 
 const DEFAULT_HEADER_SIZE: u64 = 8;
 const DATA_SIZES: [u8; 4 /*5*/] = [8, 16, 32, 64/*, 128*/];
 const DEFAULT_DATA_SIZE: usize = 3;
 
 const DATA_START: u64 = 26;
-
-#[cfg(feature = "v_hash")]
-const VERIFY_HASHING: bool = true;
-#[cfg(not(feature = "v_hash"))]
-const VERIFY_HASHING: bool = false;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct SnowBinInfo {
