@@ -12,7 +12,7 @@ env:
 jobs:
   release:
     runs-on: ubuntu-latest
-    needs: [ build-linux, build-macos, build-windows ]
+    needs: [ test-linux, test-macos, test-windows ]
     steps:
       - uses: actions/checkout@v2
       - uses: actions-ecosystem/action-regex-match@v2
@@ -26,7 +26,7 @@ jobs:
           prerelease: ${{ steps.regex-tag.outputs.match == '' }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
-  build-linux:
+  test-linux:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -43,14 +43,10 @@ jobs:
         run: rustc --version
       - name: Run tests
         run: cargo test --verbose --workspace --release
-      - name: Build
-        run: cargo build --verbose --workspace --release
       - name: Run tests (v_hash)
         run: cargo test --verbose --workspace --release --features v_hash
-      - name: Build (v_hash)
-        run: cargo build --verbose --workspace --release --features v_hash
 
-  build-macos:
+  test-macos:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
@@ -67,14 +63,10 @@ jobs:
         run: rustc --version
       - name: Run tests
         run: cargo test --verbose --workspace --release
-      - name: Build
-        run: cargo build --verbose --workspace --release
       - name: Run tests (v_hash)
         run: cargo test --verbose --workspace --release --features v_hash
-      - name: Build (v_hash)
-        run: cargo build --verbose --workspace --release --features v_hash
 
-  build-windows:
+  test-windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
@@ -91,9 +83,102 @@ jobs:
         run: rustc --version
       - name: Run tests
         run: cargo test --verbose --workspace --release
-      - name: Build
-        run: cargo build --verbose --workspace --release
       - name: Run tests (v_hash)
         run: cargo test --verbose --workspace --release --features v_hash
+
+  build-linux:
+    runs-on: ubuntu-latest
+    needs: [ release ]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Update Rust
+        run: rustup update
+      - name: Rust Version
+        run: rustc --version
       - name: Build (v_hash)
         run: cargo build --verbose --workspace --release --features v_hash
+      - name: Zip
+        uses: papeloto/action-zip@v1
+        with:
+          files: |
+            target/release/*.so
+            target/release/*.a
+          dest: snowbinary-linux.zip
+      - name: Upload to release
+        uses: alexellis/upload-assets@0.3.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          asset_paths: '["snowbinary-linux.zip"]'
+
+  build-macos:
+    runs-on: macos-latest
+    needs: [ release ]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Update Rust
+        run: rustup update
+      - name: Rust Version
+        run: rustc --version
+      - name: Build (v_hash)
+        run: cargo build --verbose --workspace --release --features v_hash
+      - name: Zip
+        uses: papeloto/action-zip@v1
+        with:
+          files: |
+            target/release/*.dylib
+            target/release/*.a
+          dest: snowbinary-macos.zip
+      - name: Upload to release
+        uses: alexellis/upload-assets@0.3.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          asset_paths: '["snowbinary-macos.zip"]'
+
+  build-windows:
+    runs-on: windows-latest
+    needs: [ release ]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Update Rust
+        run: rustup update
+      - name: Rust Version
+        run: rustc --version
+      - name: Build (v_hash)
+        run: cargo build --verbose --workspace --release --features v_hash
+      - name: Zip
+        uses: papeloto/action-zip@v1
+        with:
+          files: |
+            target/release/*.dll
+            target/release/*.lib
+            !target/release/*.dll.lib
+          dest: snowbinary-windows.zip
+      - name: Upload to release
+        uses: alexellis/upload-assets@0.3.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          asset_paths: '["snowbinary-windows.zip"]'

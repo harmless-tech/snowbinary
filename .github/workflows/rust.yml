@@ -35,6 +35,13 @@ jobs:
         run: cargo test --verbose --workspace --features v_hash
       - name: Build (v_hash)
         run: cargo build --verbose --workspace --features v_hash
+      - name: Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifacts-lin
+          path: |
+            target/debug/*.so
+            target/debug/*.a
 
   build-macos:
     runs-on: macos-latest
@@ -59,6 +66,13 @@ jobs:
         run: cargo test --verbose --workspace --features v_hash
       - name: Build (v_hash)
         run: cargo build --verbose --workspace --features v_hash
+      - name: Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifacts-mac
+          path: |
+            target/debug/*.dylib
+            target/debug/*.a
 
   build-windows:
     runs-on: windows-latest
@@ -83,3 +97,11 @@ jobs:
         run: cargo test --verbose --workspace --features v_hash
       - name: Build (v_hash)
         run: cargo build --verbose --workspace --features v_hash
+      - name: Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifacts-win
+          path: |
+            target/debug/*.dll
+            target/debug/*.lib
+            !target/debug/*.dll.lib

@@ -12,12 +12,17 @@ exclude = [".github/*", "rustfmt.toml", "target/*", ".gitignore", "Cargo.lock"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-#[lib]
-#crate-type = ["lib", "cdylib"]
-
 [dependencies]
 seahash = { version = "4.1.0", optional = true }
 
 [features]
 default = []
 v_hash = ["seahash"]
+
+[workspace]
+members = ["crates/*"]
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
