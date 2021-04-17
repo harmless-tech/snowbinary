@@ -9,6 +9,12 @@ pub enum SnowBinErrorTypes {
     HeaderTooLong,
     IOWriterClosed,
     DataTooLong,
+    IOReadError,
+    MalformedHeader,
+    MalformedUInt,
+    WrongSpecVersion,
+    ReachedEOF,
+    HashDoesNotMatch,
 }
 
 #[derive(Debug)]
@@ -29,17 +35,25 @@ impl SnowBinError {
             SnowBinErrorTypes::CouldNotCreateOrOpenFile => {
                 String::from("Could not create or open the file.")
             }
-            SnowBinErrorTypes::IOWriteError => {
-                String::from("Could not write to the file.")
-            }
-            SnowBinErrorTypes::HeaderTooLong => {
-                String::from("Header exceeds max length.")
-            }
+            SnowBinErrorTypes::IOWriteError => String::from("Could not write to the file."),
+            SnowBinErrorTypes::HeaderTooLong => String::from("Header exceeds max length."),
             SnowBinErrorTypes::IOWriterClosed => {
                 String::from("Could not write to the file, because the close function was called.")
             }
-            SnowBinErrorTypes::DataTooLong => {
-                String::from("Data exceeds max length.")
+            SnowBinErrorTypes::DataTooLong => String::from("Data exceeds max length."),
+            SnowBinErrorTypes::IOReadError => String::from("Could not read from the file."),
+            SnowBinErrorTypes::MalformedHeader => {
+                String::from("File did not start with \"SNOW_BIN\".")
+            }
+            SnowBinErrorTypes::MalformedUInt => {
+                String::from("Could not pull a uint from the file when expected.")
+            }
+            SnowBinErrorTypes::WrongSpecVersion => String::from("Spec version does not match."),
+            SnowBinErrorTypes::ReachedEOF => {
+                String::from("Reached the end of the file, without finding the header specified.")
+            }
+            SnowBinErrorTypes::HashDoesNotMatch => {
+                String::from("Verification hash did not match data hash.")
             }
         };
 
