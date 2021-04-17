@@ -4,3 +4,5 @@
 Cargo.lock
 
 *no_push*
+
+*.h

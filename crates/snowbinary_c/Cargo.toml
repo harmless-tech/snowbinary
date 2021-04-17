@@ -3,7 +3,7 @@ name = "snowbinary_c"
 version = "0.2.0"
 authors = ["harmless-tech"]
 edition = "2018"
-description = "A c wrapper for snowbinary."
+description = "A c impl for snowbinary."
 readme = "../../README.md"
 repository = "https://github.com/harmless-tech/snowbinary"
 license = "MIT"
@@ -14,9 +14,8 @@ license = "MIT"
 crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
-snowbinary = { path = "../.." }
+libc = "0.2.93"
+seahash = "4.1.0" # The c library will always have seahash imported.
 
-[profile.release]
-opt-level = "z"
-lto = true
-codegen-units = 1
+[features]
+default = []

@@ -1,13 +1,13 @@
+pub mod error;
+mod reader;
+mod writer;
+
 use crate::error::{SnowBinError, SnowBinErrorTypes};
 use std::{
     fs::File,
     io::{Seek, SeekFrom},
     path::PathBuf,
 };
-
-pub mod error;
-mod reader;
-mod writer;
 
 pub const VERSION_SPEC: u64 = 0; // Snow Binary File Format
 
