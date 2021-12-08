@@ -9,15 +9,16 @@ use std::{
     path::PathBuf,
 };
 
-pub const VERSION_SPEC: u64 = 0; // Snow Binary File Format
+pub const VERSION_SPEC: u64 = 1; // Snow Binary File Format
 
+//TODO: Switch this out with cfg.
 #[cfg(feature = "v_hash")]
-pub const VERIFY_HASHING: bool = true;
+pub const VERIFY_HASH: bool = true;
 #[cfg(not(feature = "v_hash"))]
-pub const VERIFY_HASHING: bool = false;
+pub const VERIFY_HASH: bool = false;
 
 const DEFAULT_HEADER_SIZE: u64 = 8;
-const DATA_SIZES: [u8; 4 /*5*/] = [8, 16, 32, 64/*, 128*/];
+const DATA_SIZES: [u8; 4] = [8, 16, 32, 64];
 const DEFAULT_DATA_SIZE: usize = 3;
 
 const DATA_START: u64 = 26;
@@ -38,7 +39,7 @@ impl SnowBinInfo {
     }
 
     pub fn new_with_v_hash() -> Result<Self, SnowBinError> {
-        if !VERIFY_HASHING {
+        if !VERIFY_HASH {
             return Err(SnowBinError::new(
                 SnowBinErrorTypes::VerifyHashingNotEnabled,
             ));
@@ -57,11 +58,10 @@ impl SnowBinInfo {
             16 => 16,
             32 => 32,
             64 => 64,
-            /*128 => 128,*/
             _ => return Err(SnowBinError::new(SnowBinErrorTypes::DataSizeNotAllowed)),
         };
 
-        if !VERIFY_HASHING && v_hash {
+        if !VERIFY_HASH && v_hash {
             return Err(SnowBinError::new(
                 SnowBinErrorTypes::VerifyHashingNotEnabled,
             ));
@@ -83,7 +83,7 @@ pub struct SnowBinWriter {
 }
 impl SnowBinWriter {
     pub fn new(info: &SnowBinInfo, path: PathBuf) -> Result<Self, SnowBinError> {
-        if !VERIFY_HASHING && info.v_hash {
+        if !VERIFY_HASH && info.v_hash {
             return Err(SnowBinError::new(
                 SnowBinErrorTypes::VerifyHashingNotEnabled,
             ));
@@ -129,7 +129,7 @@ impl SnowBinWriter {
             if data.len() as u64 > max {
                 return Err(SnowBinError::new(SnowBinErrorTypes::DataTooLong));
             }
-            if !VERIFY_HASHING && self.info.v_hash {
+            if !VERIFY_HASH && self.info.v_hash {
                 return Err(SnowBinError::new(
                     SnowBinErrorTypes::VerifyHashingNotEnabled,
                 ));
@@ -142,7 +142,6 @@ impl SnowBinWriter {
                 16 => writer::write_u16(&mut self.file, data.len() as u16)?,
                 32 => writer::write_u32(&mut self.file, data.len() as u32)?,
                 64 => writer::write_u64(&mut self.file, data.len() as u64)?,
-                /*128 => 128,*/
                 _ => return Err(SnowBinError::new(SnowBinErrorTypes::DataSizeNotAllowed)),
             }
             writer::write_bytes(&mut self.file, data)?;
@@ -168,7 +167,6 @@ impl SnowBinWriter {
             16 => u16::MAX as u64,
             32 => u32::MAX as u64,
             64 => u64::MAX as u64,
-            /*128 => 128,*/
             _ => return Err(SnowBinError::new(SnowBinErrorTypes::DataSizeNotAllowed)),
         })
     }
@@ -235,12 +233,12 @@ impl SnowBinReader {
 
         let data_size = reader::read_u8(file)?;
         match data_size {
-            8 | 16 | 32 | 64 /* | 128 */ => (),
+            8 | 16 | 32 | 64 => (),
             _ => return Err(SnowBinError::new(SnowBinErrorTypes::DataSizeNotAllowed)),
         };
 
         let v_hash = reader::read_bool(file)?;
-        if !VERIFY_HASHING && v_hash {
+        if !VERIFY_HASH && v_hash {
             return Err(SnowBinError::new(
                 SnowBinErrorTypes::VerifyHashingNotEnabled,
             ));
@@ -255,7 +253,7 @@ impl SnowBinReader {
 
     //TODO Maybe allow a slice to be returned instead?
     pub fn read(&mut self, header: &str) -> Result<Vec<u8>, SnowBinError> {
-        if !VERIFY_HASHING && self.info.v_hash {
+        if !VERIFY_HASH && self.info.v_hash {
             return Err(SnowBinError::new(
                 SnowBinErrorTypes::VerifyHashingNotEnabled,
             ));
@@ -284,7 +282,6 @@ impl SnowBinReader {
                 16 => reader::read_u16(&mut self.file)? as u64,
                 32 => reader::read_u32(&mut self.file)? as u64,
                 64 => reader::read_u64(&mut self.file)? as u64,
-                /* 128 => , */
                 _ => return Err(SnowBinError::new(SnowBinErrorTypes::DataSizeNotAllowed)),
             };
 

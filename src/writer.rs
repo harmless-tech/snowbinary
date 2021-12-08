@@ -43,11 +43,6 @@ pub fn write_u64(file: &mut File, data: u64) -> Result<(), SnowBinError> {
     error(file.by_ref().write_all(buffer))
 }
 
-/*pub fn write_u128(file: &mut File, data: u128) -> Result<(), SnowBinError> {
-    let buffer = &(data).to_be_bytes();
-    error(file.by_ref().write_all(buffer))
-}*/
-
 pub fn write_bool(file: &mut File, data: bool) -> Result<(), SnowBinError> {
     let buffer = &(data as u8).to_be_bytes();
     error(file.by_ref().write_all(buffer))

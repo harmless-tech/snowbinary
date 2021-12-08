@@ -79,16 +79,6 @@ pub fn read_u64(file: &mut File) -> Result<u64, SnowBinError> {
     Ok(uint)
 }
 
-/*pub fn read_u128(file: &mut File) -> Result<u128, SnowBinError> {
-    let mut buffer = [0_u8; 16];
-    error(file.by_ref().take(16).read(&mut buffer))?;
-
-    let (uint_bytes, _) = buffer.split_at(mem::size_of::<u128>());
-    let uint = u128::from_be_bytes(uint_bytes.try_into().map_err(|_| SnowBinError::new(SnowBinErrorTypes::MalformedUInt))?);
-
-    Ok(uint)
-}*/
-
 pub fn read_bool(file: &mut File) -> Result<bool, SnowBinError> {
     let byte = read_u8(file)?;
     Ok(match byte {
