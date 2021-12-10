@@ -22,12 +22,6 @@ A binary file format, writer and reader.
 }
 ```
 
-## Future Improvements
-
-- Better testing.
-- More examples.
-- Docs.
-
 ## Binary Format
 
 #### Spec 1
