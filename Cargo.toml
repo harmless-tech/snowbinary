@@ -22,9 +22,6 @@ v_hash = ["ahash"]
 [package.metadata.docs.rs]
 features = [ "v_hash" ]
 
-[workspace]
-members = ["crates/*"]
-
 [profile.release]
 opt-level = 3
 lto = true
