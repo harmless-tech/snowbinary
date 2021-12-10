@@ -1,6 +1,5 @@
 name: Rust Build, Test, and Create Release
 #TODO: Auto publish to crates.io?
-#TODO: Switch .dylib to .so for macos 11?
 
 on:
   push:
@@ -105,19 +104,6 @@ jobs:
         run: rustc --version
       - name: Build (v_hash)
         run: cargo build --verbose --workspace --release --features v_hash
-      - name: Zip
-        uses: papeloto/action-zip@v1
-        with:
-          files: |
-            target/release/*.so
-            target/release/*.a
-          dest: snowbinary-linux.zip
-      - name: Upload to release
-        uses: alexellis/upload-assets@0.3.0
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          asset_paths: '["snowbinary-linux.zip"]'
 
   build-macos:
     runs-on: macos-latest
@@ -137,19 +123,6 @@ jobs:
         run: rustc --version
       - name: Build (v_hash)
         run: cargo build --verbose --workspace --release --features v_hash
-      - name: Zip
-        uses: papeloto/action-zip@v1
-        with:
-          files: |
-            target/release/*.dylib
-            target/release/*.a
-          dest: snowbinary-macos.zip
-      - name: Upload to release
-        uses: alexellis/upload-assets@0.3.0
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          asset_paths: '["snowbinary-macos.zip"]'
 
   build-windows:
     runs-on: windows-latest
@@ -169,17 +142,3 @@ jobs:
         run: rustc --version
       - name: Build (v_hash)
         run: cargo build --verbose --workspace --release --features v_hash
-      - name: Zip
-        uses: papeloto/action-zip@v1
-        with:
-          files: |
-            target/release/*.dll
-            target/release/*.lib
-            !target/release/*.dll.lib
-          dest: snowbinary-windows.zip
-      - name: Upload to release
-        uses: alexellis/upload-assets@0.3.0
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          asset_paths: '["snowbinary-windows.zip"]'
