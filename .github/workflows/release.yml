@@ -140,6 +140,7 @@ jobs:
         uses: papeloto/action-zip@v1
         with:
           files: |
+# Will this need to be switched over to .so for macos 11?
             target/release/*.dylib
             target/release/*.a
           dest: snowbinary-macos.zip

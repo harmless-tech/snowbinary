@@ -2,6 +2,9 @@ pub mod error;
 mod reader;
 mod writer;
 
+#[cfg(test)]
+mod tests;
+
 use crate::error::{SnowBinError, SnowBinErrorTypes};
 use std::{
     fs::File,
@@ -307,13 +310,5 @@ impl SnowBinReader {
         }
 
         Ok(data)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
     }
 }

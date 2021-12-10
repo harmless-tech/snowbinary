@@ -71,6 +71,7 @@ jobs:
         with:
           name: artifacts-mac
           path: |
+# Will this need to be switched over to .so for macos 11?
             target/debug/*.dylib
             target/debug/*.a
 

@@ -4,6 +4,7 @@
 Cargo.lock
 
 *no_push*
+/temp
 
 .DS_Store
 *.h
