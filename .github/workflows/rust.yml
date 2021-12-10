@@ -1,6 +1,7 @@
 name: Rust Build and Test
-#TODO Switch to alt rust tooling
-#TODO Add formatting check for pull requests
+#TODO: Switch to alt rust tooling
+#TODO: Add formatting check for pull requests
+#TODO: Switch .dylib to .so for macos 11?
 
 on:
   push:
@@ -71,7 +72,6 @@ jobs:
         with:
           name: artifacts-mac
           path: |
-# Will this need to be switched over to .so for macos 11?
             target/debug/*.dylib
             target/debug/*.a
 
