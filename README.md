@@ -4,7 +4,7 @@
 ![Crates.io](https://img.shields.io/crates/v/snowbinary)
 ![docs.rs](https://img.shields.io/docsrs/snowbinary/latest)
 
-A binary file format, writer, and reader.
+A binary file format, writer and reader.
 
 ## Basic Example
 

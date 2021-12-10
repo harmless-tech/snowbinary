@@ -20,13 +20,34 @@ mod tests {
         SnowBinInfo::new(u64::MAX, 32)?;
         SnowBinInfo::new(u64::MAX, 64)?;
 
-        assert_eq!(SnowBinInfo::new(1, 8).unwrap_err().error_type(), SnowBinErrorTypes::HeaderSizeTooSmall);
-        assert_eq!(SnowBinInfo::new(1, 16).unwrap_err().error_type(), SnowBinErrorTypes::HeaderSizeTooSmall);
-        assert_eq!(SnowBinInfo::new(1, 32).unwrap_err().error_type(), SnowBinErrorTypes::HeaderSizeTooSmall);
-        assert_eq!(SnowBinInfo::new(1, 64).unwrap_err().error_type(), SnowBinErrorTypes::HeaderSizeTooSmall);
-        assert_eq!(SnowBinInfo::new(1, 1).unwrap_err().error_type(), SnowBinErrorTypes::HeaderSizeTooSmall);
-        assert_eq!(SnowBinInfo::new(8, 1).unwrap_err().error_type(), SnowBinErrorTypes::DataSizeNotAllowed);
-        assert_eq!(SnowBinInfo::new(8, u8::MAX).unwrap_err().error_type(), SnowBinErrorTypes::DataSizeNotAllowed);
+        assert_eq!(
+            SnowBinInfo::new(1, 8).unwrap_err().error_type(),
+            SnowBinErrorTypes::HeaderSizeTooSmall
+        );
+        assert_eq!(
+            SnowBinInfo::new(1, 16).unwrap_err().error_type(),
+            SnowBinErrorTypes::HeaderSizeTooSmall
+        );
+        assert_eq!(
+            SnowBinInfo::new(1, 32).unwrap_err().error_type(),
+            SnowBinErrorTypes::HeaderSizeTooSmall
+        );
+        assert_eq!(
+            SnowBinInfo::new(1, 64).unwrap_err().error_type(),
+            SnowBinErrorTypes::HeaderSizeTooSmall
+        );
+        assert_eq!(
+            SnowBinInfo::new(1, 1).unwrap_err().error_type(),
+            SnowBinErrorTypes::HeaderSizeTooSmall
+        );
+        assert_eq!(
+            SnowBinInfo::new(8, 1).unwrap_err().error_type(),
+            SnowBinErrorTypes::DataSizeNotAllowed
+        );
+        assert_eq!(
+            SnowBinInfo::new(8, u8::MAX).unwrap_err().error_type(),
+            SnowBinErrorTypes::DataSizeNotAllowed
+        );
 
         Ok(())
     }
@@ -53,13 +74,42 @@ mod v_hash_tests {
         SnowBinInfo::new_with_v_hash(u64::MAX, 32)?;
         SnowBinInfo::new_with_v_hash(u64::MAX, 64)?;
 
-        assert_eq!(SnowBinInfo::new_with_v_hash(1, 8).unwrap_err().error_type(), SnowBinErrorTypes::HeaderSizeTooSmall);
-        assert_eq!(SnowBinInfo::new_with_v_hash(1, 16).unwrap_err().error_type(), SnowBinErrorTypes::HeaderSizeTooSmall);
-        assert_eq!(SnowBinInfo::new_with_v_hash(1, 32).unwrap_err().error_type(), SnowBinErrorTypes::HeaderSizeTooSmall);
-        assert_eq!(SnowBinInfo::new_with_v_hash(1, 64).unwrap_err().error_type(), SnowBinErrorTypes::HeaderSizeTooSmall);
-        assert_eq!(SnowBinInfo::new_with_v_hash(1, 1).unwrap_err().error_type(), SnowBinErrorTypes::HeaderSizeTooSmall);
-        assert_eq!(SnowBinInfo::new_with_v_hash(8, 1).unwrap_err().error_type(), SnowBinErrorTypes::DataSizeNotAllowed);
-        assert_eq!(SnowBinInfo::new_with_v_hash(8, u8::MAX).unwrap_err().error_type(), SnowBinErrorTypes::DataSizeNotAllowed);
+        assert_eq!(
+            SnowBinInfo::new_with_v_hash(1, 8).unwrap_err().error_type(),
+            SnowBinErrorTypes::HeaderSizeTooSmall
+        );
+        assert_eq!(
+            SnowBinInfo::new_with_v_hash(1, 16)
+                .unwrap_err()
+                .error_type(),
+            SnowBinErrorTypes::HeaderSizeTooSmall
+        );
+        assert_eq!(
+            SnowBinInfo::new_with_v_hash(1, 32)
+                .unwrap_err()
+                .error_type(),
+            SnowBinErrorTypes::HeaderSizeTooSmall
+        );
+        assert_eq!(
+            SnowBinInfo::new_with_v_hash(1, 64)
+                .unwrap_err()
+                .error_type(),
+            SnowBinErrorTypes::HeaderSizeTooSmall
+        );
+        assert_eq!(
+            SnowBinInfo::new_with_v_hash(1, 1).unwrap_err().error_type(),
+            SnowBinErrorTypes::HeaderSizeTooSmall
+        );
+        assert_eq!(
+            SnowBinInfo::new_with_v_hash(8, 1).unwrap_err().error_type(),
+            SnowBinErrorTypes::DataSizeNotAllowed
+        );
+        assert_eq!(
+            SnowBinInfo::new_with_v_hash(8, u8::MAX)
+                .unwrap_err()
+                .error_type(),
+            SnowBinErrorTypes::DataSizeNotAllowed
+        );
 
         Ok(())
     }

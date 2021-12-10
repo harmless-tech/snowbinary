@@ -1,3 +1,9 @@
+#![warn(missing_docs)]
+#![warn(rustdoc::missing_doc_code_examples)]
+
+//! Easy to use binary file writer and reader with its own format.
+
+/// Holds error types for SnowBinary.
 pub mod error;
 mod reader;
 mod writer;
@@ -240,7 +246,9 @@ impl SnowBinReader {
         let v_hash = reader::read_bool(file)?;
         #[cfg(not(feature = "v_hash"))]
         if v_hash {
-            return Err(SnowBinError::new(SnowBinErrorTypes::VerifyHashingNotEnabled));
+            return Err(SnowBinError::new(
+                SnowBinErrorTypes::VerifyHashingNotEnabled,
+            ));
         }
 
         Ok(SnowBinInfo {
