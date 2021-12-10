@@ -19,6 +19,9 @@ ahash = { version = "0.7.6", optional = true }
 default = []
 v_hash = ["ahash"]
 
+[package.metadata.docs.rs]
+features = [ "v_hash" ]
+
 [workspace]
 members = ["crates/*"]
 

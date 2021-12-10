@@ -5,6 +5,8 @@ Cargo.lock
 
 *no_push*
 /temp
+*.tmp
+*.temp
 
 .DS_Store
 *.h

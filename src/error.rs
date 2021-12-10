@@ -45,6 +45,8 @@ impl SnowBinError {
     /// Creates a new SnowBinError using this type and assigns it a description.
     /// # Example
     /// ```
+    /// use snowbinary::error::{SnowBinError, SnowBinErrorTypes};
+    ///
     /// let err = SnowBinError::new(SnowBinErrorTypes::ReachedEOF);
     /// err.error_type(); // == SnowBinErrorTypes::ReachedEOF
     /// eprintln!("{}", err); // == Reached the end of the file, without finding the header specified.
@@ -91,6 +93,8 @@ impl SnowBinError {
     /// Returns the type of error this is.
     /// # Example
     /// ```
+    /// use snowbinary::error::{SnowBinError, SnowBinErrorTypes};
+    ///
     /// let err = SnowBinError::new(SnowBinErrorTypes::ReachedEOF);
     /// err.error_type(); // == SnowBinErrorTypes::ReachedEOF
     /// ```
