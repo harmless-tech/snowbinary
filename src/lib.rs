@@ -9,13 +9,9 @@ use std::{
     path::PathBuf,
 };
 
-pub const VERSION_SPEC: u64 = 1; // Snow Binary File Format
+//TODO: Allow in buffer way.
 
-//TODO: Switch this out with cfg.
-#[cfg(feature = "v_hash")]
-pub const VERIFY_HASH: bool = true;
-#[cfg(not(feature = "v_hash"))]
-pub const VERIFY_HASH: bool = false;
+pub const VERSION_SPEC: u64 = 1; // Snow Binary File Format
 
 const DEFAULT_HEADER_SIZE: u64 = 8;
 const DATA_SIZES: [u8; 4] = [8, 16, 32, 64];
@@ -29,30 +25,16 @@ pub struct SnowBinInfo {
     data_size: u8,
     v_hash: bool,
 }
+
 impl SnowBinInfo {
-    pub fn new() -> Self {
-        Self {
-            header_size: DEFAULT_HEADER_SIZE,
-            data_size: DATA_SIZES[DEFAULT_DATA_SIZE],
-            v_hash: false,
+    pub fn new(header_size: u64, data_size: u8) -> Result<Self, SnowBinError> {
+        let header_size = if header_size >= 8 {
+            header_size
         }
-    }
+        else {
+            return Err(SnowBinError::new(SnowBinErrorTypes::HeaderSizeTooSmall));
+        };
 
-    pub fn new_with_v_hash() -> Result<Self, SnowBinError> {
-        if !VERIFY_HASH {
-            return Err(SnowBinError::new(
-                SnowBinErrorTypes::VerifyHashingNotEnabled,
-            ));
-        }
-
-        Ok(Self {
-            header_size: DEFAULT_HEADER_SIZE,
-            data_size: DATA_SIZES[DEFAULT_DATA_SIZE],
-            v_hash: true,
-        })
-    }
-
-    pub fn new_custom(header_size: u64, data_size: u8, v_hash: bool) -> Result<Self, SnowBinError> {
         let data_size = match data_size {
             8 => 8,
             16 => 16,
@@ -61,17 +43,38 @@ impl SnowBinInfo {
             _ => return Err(SnowBinError::new(SnowBinErrorTypes::DataSizeNotAllowed)),
         };
 
-        if !VERIFY_HASH && v_hash {
-            return Err(SnowBinError::new(
-                SnowBinErrorTypes::VerifyHashingNotEnabled,
-            ));
-        }
-
         Ok(Self {
             header_size,
             data_size,
-            v_hash,
+            v_hash: false,
         })
+    }
+
+    #[cfg(feature = "v_hash")]
+    pub fn new_with_v_hash(header_size: u64, data_size: u8) -> Result<Self, SnowBinError> {
+        let mut info = Self::new(header_size, data_size)?;
+        info.v_hash = true;
+
+        Ok(info)
+    }
+
+    #[cfg(feature = "v_hash")]
+    pub fn default_with_v_hash() -> Self {
+        Self {
+            header_size: DEFAULT_HEADER_SIZE,
+            data_size: DATA_SIZES[DEFAULT_DATA_SIZE],
+            v_hash: true,
+        }
+    }
+}
+
+impl Default for SnowBinInfo {
+    fn default() -> Self {
+        Self {
+            header_size: DEFAULT_HEADER_SIZE,
+            data_size: DATA_SIZES[DEFAULT_DATA_SIZE],
+            v_hash: false,
+        }
     }
 }
 
@@ -81,14 +84,9 @@ pub struct SnowBinWriter {
     file: File,
     done: bool,
 }
+
 impl SnowBinWriter {
     pub fn new(info: &SnowBinInfo, path: PathBuf) -> Result<Self, SnowBinError> {
-        if !VERIFY_HASH && info.v_hash {
-            return Err(SnowBinError::new(
-                SnowBinErrorTypes::VerifyHashingNotEnabled,
-            ));
-        }
-
         let mut file = match File::create(path) {
             Ok(file) => file,
             Err(_) => {
@@ -118,7 +116,7 @@ impl SnowBinWriter {
         writer::write_bool(file, info.v_hash)
     }
 
-    //TODO Disallow multiple headers of the same name.
+    //TODO Should this check for headers of the same name?
     pub fn write(&mut self, header: &str, data: &[u8]) -> Result<(), SnowBinError> {
         if !self.done {
             // Check
@@ -128,11 +126,6 @@ impl SnowBinWriter {
             let max = self.get_max_size()?;
             if data.len() as u64 > max {
                 return Err(SnowBinError::new(SnowBinErrorTypes::DataTooLong));
-            }
-            if !VERIFY_HASH && self.info.v_hash {
-                return Err(SnowBinError::new(
-                    SnowBinErrorTypes::VerifyHashingNotEnabled,
-                ));
             }
 
             // Write Data
@@ -148,11 +141,13 @@ impl SnowBinWriter {
 
             // Verify Hash
             #[cfg(feature = "v_hash")]
-            {
-                if self.info.v_hash {
-                    let hash = seahash::hash(data);
-                    writer::write_u64(&mut self.file, hash)?;
-                }
+            if self.info.v_hash {
+                use ahash::AHasher;
+                use std::hash::Hasher;
+
+                let mut hasher = AHasher::default();
+                hasher.write(data);
+                writer::write_u64(&mut self.file, hasher.finish())?;
             }
 
             return Ok(());
@@ -188,6 +183,7 @@ impl SnowBinWriter {
         Err(SnowBinError::new(SnowBinErrorTypes::IOWriterClosed))
     }
 }
+
 impl Drop for SnowBinWriter {
     fn drop(&mut self) {
         self.close().unwrap();
@@ -199,6 +195,7 @@ pub struct SnowBinReader {
     info: SnowBinInfo,
     file: File,
 }
+
 impl SnowBinReader {
     pub fn new(path: PathBuf) -> Result<Self, SnowBinError> {
         let mut file = match File::open(path) {
@@ -238,10 +235,9 @@ impl SnowBinReader {
         };
 
         let v_hash = reader::read_bool(file)?;
-        if !VERIFY_HASH && v_hash {
-            return Err(SnowBinError::new(
-                SnowBinErrorTypes::VerifyHashingNotEnabled,
-            ));
+        #[cfg(not(feature = "v_hash"))]
+        if v_hash {
+            return Err(SnowBinError::new(SnowBinErrorTypes::VerifyHashingNotEnabled));
         }
 
         Ok(SnowBinInfo {
@@ -251,14 +247,7 @@ impl SnowBinReader {
         })
     }
 
-    //TODO Maybe allow a slice to be returned instead?
     pub fn read(&mut self, header: &str) -> Result<Vec<u8>, SnowBinError> {
-        if !VERIFY_HASH && self.info.v_hash {
-            return Err(SnowBinError::new(
-                SnowBinErrorTypes::VerifyHashingNotEnabled,
-            ));
-        }
-
         self.file
             .seek(SeekFrom::Start(DATA_START))
             .map_err(|_| SnowBinError::new(SnowBinErrorTypes::IOReadError))?;
@@ -289,14 +278,17 @@ impl SnowBinReader {
                 data = reader::read_bytes(&mut self.file, size)?;
 
                 #[cfg(feature = "v_hash")]
-                {
-                    if self.info.v_hash {
-                        let f_hash = reader::read_u64(&mut self.file)?;
-                        let hash = seahash::hash(data.as_slice());
+                if self.info.v_hash {
+                    use ahash::AHasher;
+                    use std::hash::Hasher;
 
-                        if !f_hash.eq(&hash) {
-                            return Err(SnowBinError::new(SnowBinErrorTypes::HashDoesNotMatch));
-                        }
+                    let f_hash = reader::read_u64(&mut self.file)?;
+
+                    let mut hasher = AHasher::default();
+                    hasher.write(&data);
+
+                    if !f_hash.eq(&hasher.finish()) {
+                        return Err(SnowBinError::new(SnowBinErrorTypes::HashDoesNotMatch));
                     }
                 }
             }
@@ -306,12 +298,10 @@ impl SnowBinReader {
                     .map_err(|_| SnowBinError::new(SnowBinErrorTypes::IOReadError))?;
 
                 #[cfg(feature = "v_hash")]
-                {
-                    if self.info.v_hash {
-                        self.file
-                            .seek(SeekFrom::Current(8))
-                            .map_err(|_| SnowBinError::new(SnowBinErrorTypes::IOReadError))?;
-                    }
+                if self.info.v_hash {
+                    self.file
+                        .seek(SeekFrom::Current(8))
+                        .map_err(|_| SnowBinError::new(SnowBinErrorTypes::IOReadError))?;
                 }
             }
         }
