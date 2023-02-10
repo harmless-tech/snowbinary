@@ -41,7 +41,6 @@ pub struct SnowBinError {
 }
 
 impl SnowBinError {
-
     /// Creates a new SnowBinError using this type and assigns it a description.
     /// # Example
     /// ```

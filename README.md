@@ -1,8 +1,9 @@
 # SnowBinary
-[![Rust Build and Test](https://github.com/harmless-tech/snowbinary/actions/workflows/rust.yml/badge.svg)](https://github.com/harmless-tech/snowbinary/actions/workflows/rust.yml)
-[![Rust Build, Test, and Create Release](https://github.com/harmless-tech/snowbinary/actions/workflows/release.yml/badge.svg)](https://github.com/harmless-tech/snowbinary/actions/workflows/release.yml)
-![Crates.io](https://img.shields.io/crates/v/snowbinary)
-![docs.rs](https://img.shields.io/docsrs/snowbinary/latest)
+[![Rust Checks](https://github.com/harmless-tech/snowbinary/actions/workflows/checks.yml/badge.svg)](https://github.com/harmless-tech/snowbinary/actions/workflows/checks.yml)
+[![Rust Build and Test](https://github.com/harmless-tech/snowbinary/actions/workflows/build.yml/badge.svg)](https://github.com/harmless-tech/snowbinary/actions/workflows/build.yml)
+[![Rust Build, Test, and Release](https://github.com/harmless-tech/snowbinary/actions/workflows/release.yml/badge.svg)](https://github.com/harmless-tech/snowbinary/actions/workflows/release.yml)
+[![Crates.io](https://img.shields.io/crates/v/snowbinary)](https://crates.io/crates/snowbinary)
+[![docs.rs](https://img.shields.io/docsrs/snowbinary/latest)](https://docs.rs/snowbinary/latest/snowbinary)
 
 A binary file format, writer and reader.
 

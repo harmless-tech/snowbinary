@@ -1,5 +1,6 @@
-use crate::error::{SnowBinError, SnowBinErrorTypes};
 use std::{fs::File, io::Write};
+
+use crate::error::{SnowBinError, SnowBinErrorTypes};
 
 pub fn error(result: std::io::Result<()>) -> Result<(), SnowBinError> {
     match result {

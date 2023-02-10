@@ -1,6 +1,6 @@
 //TODO Writing and Reading tests.
 
-mod tests {
+mod default_tests {
     use crate::{SnowBinError, SnowBinErrorTypes, SnowBinInfo};
 
     #[test]

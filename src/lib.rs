@@ -11,12 +11,13 @@ mod writer;
 #[cfg(test)]
 mod tests;
 
-use crate::error::{SnowBinError, SnowBinErrorTypes};
 use std::{
     fs::File,
     io::{Seek, SeekFrom},
     path::PathBuf,
 };
+
+use crate::error::{SnowBinError, SnowBinErrorTypes};
 
 //TODO: Allow in buffer way.
 
@@ -46,7 +47,6 @@ pub struct SnowBinInfo {
 }
 
 impl SnowBinInfo {
-
     /// Creates a new SnowBinInfo with header_size and data_size, no verify hashing.
     /// Returns SnowBinError if the header_size is < 8 or if data_size is not 8, 16, 32, or 64.
     /// # Example
@@ -131,13 +131,13 @@ pub struct SnowBinWriter {
 }
 
 impl SnowBinWriter {
-
     /// Creates a new SnowBinWriter using the params of SnowBinInfo.
     /// Returns SnowBinError if the file could not be created or opened, or the file cannot be
     /// written to.
     /// # Example
     /// ```
     /// use std::path::PathBuf;
+    ///
     /// use snowbinary::{SnowBinInfo, SnowBinWriter};
     ///
     /// let writer = SnowBinWriter::new(&SnowBinInfo::default(), PathBuf::from("file.temp"));
@@ -155,14 +155,14 @@ impl SnowBinWriter {
         SnowBinWriter::init_file(&mut file, info)?;
 
         Ok(Self {
-            info: info.clone(),
+            info: *info,
             file,
             done: false,
         })
     }
 
     fn init_file(file: &mut File, info: &SnowBinInfo) -> Result<(), SnowBinError> {
-        file.seek(SeekFrom::Start(0))
+        file.rewind()
             .map_err(|_| SnowBinError::new(SnowBinErrorTypes::IOWriteError))?;
 
         writer::write_header(file, "SNOW_BIN", 8)?;
@@ -178,13 +178,14 @@ impl SnowBinWriter {
     /// # Example
     /// ```
     /// use std::path::PathBuf;
-    /// use snowbinary::{SnowBinInfo, SnowBinWriter, error::SnowBinError};
+    ///
+    /// use snowbinary::{error::SnowBinError, SnowBinInfo, SnowBinWriter};
     ///
     /// let mut writer = SnowBinWriter::new(&SnowBinInfo::default(), PathBuf::from("file.temp"));
     /// match &mut writer {
     ///     Ok(writer) => {
     ///         writer.write("Header", "This is data!".as_bytes());
-    ///     },
+    ///     }
     ///     Err(_) => {}
     /// }
     /// ```
@@ -214,8 +215,9 @@ impl SnowBinWriter {
             // Verify Hash
             #[cfg(feature = "v_hash")]
             if self.info.v_hash {
-                use ahash::AHasher;
                 use std::hash::Hasher;
+
+                use ahash::AHasher;
 
                 let mut hasher = AHasher::default();
                 hasher.write(data);
@@ -233,7 +235,7 @@ impl SnowBinWriter {
             8 => u8::MAX as u64,
             16 => u16::MAX as u64,
             32 => u32::MAX as u64,
-            64 => u64::MAX as u64,
+            64 => u64::MAX,
             _ => return Err(SnowBinError::new(SnowBinErrorTypes::DataSizeNotAllowed)),
         })
     }
@@ -243,14 +245,15 @@ impl SnowBinWriter {
     /// # Example
     /// ```
     /// use std::path::PathBuf;
-    /// use snowbinary::{SnowBinInfo, SnowBinWriter, error::SnowBinError};
+    ///
+    /// use snowbinary::{error::SnowBinError, SnowBinInfo, SnowBinWriter};
     ///
     /// let mut writer = SnowBinWriter::new(&SnowBinInfo::default(), PathBuf::from("file.temp"));
     /// match &mut writer {
     ///     Ok(writer) => {
     ///         writer.write("Header", "This is data!".as_bytes());
     ///         writer.close(); // Or let the writer drop.
-    ///     },
+    ///     }
     ///     Err(_) => {}
     /// }
     /// ```
@@ -288,13 +291,13 @@ pub struct SnowBinReader {
 }
 
 impl SnowBinReader {
-
     /// Creates a new SnowBinReader. Params are pulled from the file info.
     /// Returns SnowBinError if the file could not be created or opened, or the file cannot be
     /// read from.
     /// # Example
     /// ```
     /// use std::path::PathBuf;
+    ///
     /// use snowbinary::{SnowBinInfo, SnowBinReader};
     ///
     /// let reader = SnowBinReader::new(PathBuf::from("file.temp"));
@@ -315,7 +318,7 @@ impl SnowBinReader {
     }
 
     fn read_info(file: &mut File) -> Result<SnowBinInfo, SnowBinError> {
-        file.seek(SeekFrom::Start(0))
+        file.rewind()
             .map_err(|_| SnowBinError::new(SnowBinErrorTypes::IOReadError))?;
 
         let snow_header = reader::read_header(file, 8)?;
@@ -357,14 +360,14 @@ impl SnowBinReader {
     /// # Example
     /// ```
     /// use std::path::PathBuf;
-    /// use snowbinary::{SnowBinInfo, SnowBinReader};
-    /// use snowbinary::error::SnowBinError;
+    ///
+    /// use snowbinary::{error::SnowBinError, SnowBinInfo, SnowBinReader};
     ///
     /// let mut reader = SnowBinReader::new(PathBuf::from("file.temp"));
     /// match &mut reader {
     ///     Ok(reader) => {
     ///         let data = reader.read("Header");
-    ///     },
+    ///     }
     ///     Err(_) => {}
     /// }
     /// ```
@@ -391,7 +394,7 @@ impl SnowBinReader {
                 8 => reader::read_u8(&mut self.file)? as u64,
                 16 => reader::read_u16(&mut self.file)? as u64,
                 32 => reader::read_u32(&mut self.file)? as u64,
-                64 => reader::read_u64(&mut self.file)? as u64,
+                64 => reader::read_u64(&mut self.file)?,
                 _ => return Err(SnowBinError::new(SnowBinErrorTypes::DataSizeNotAllowed)),
             };
 
@@ -400,8 +403,9 @@ impl SnowBinReader {
 
                 #[cfg(feature = "v_hash")]
                 if self.info.v_hash {
-                    use ahash::AHasher;
                     use std::hash::Hasher;
+
+                    use ahash::AHasher;
 
                     let f_hash = reader::read_u64(&mut self.file)?;
 

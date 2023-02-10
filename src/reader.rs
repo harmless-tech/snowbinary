@@ -1,5 +1,6 @@
-use crate::error::{SnowBinError, SnowBinErrorTypes};
 use std::{convert::TryInto, fs::File, io::Read, mem};
+
+use crate::error::{SnowBinError, SnowBinErrorTypes};
 
 pub fn error(result: std::io::Result<usize>) -> Result<usize, SnowBinError> {
     match result {
@@ -12,8 +13,7 @@ pub fn read_header(file: &mut File, header_len: u64) -> Result<String, SnowBinEr
     let mut buffer = vec![32_u8; header_len as usize];
     error(file.by_ref().take(header_len).read(&mut buffer))?;
 
-    Ok(String::from_utf8(buffer)
-        .map_err(|_| SnowBinError::new(SnowBinErrorTypes::MalformedHeader))?)
+    String::from_utf8(buffer).map_err(|_| SnowBinError::new(SnowBinErrorTypes::MalformedHeader))
 }
 
 pub fn read_bytes(file: &mut File, length: u64) -> Result<Vec<u8>, SnowBinError> {
@@ -81,8 +81,5 @@ pub fn read_u64(file: &mut File) -> Result<u64, SnowBinError> {
 
 pub fn read_bool(file: &mut File) -> Result<bool, SnowBinError> {
     let byte = read_u8(file)?;
-    Ok(match byte {
-        0 => false,
-        _ => true,
-    })
+    Ok(!matches!(byte, 0))
 }
