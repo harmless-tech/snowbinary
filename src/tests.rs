@@ -1,7 +1,7 @@
 //TODO Writing and Reading tests.
 
 mod default_tests {
-    use crate::{SnowBinError, SnowBinErrorTypes, SnowBinInfo};
+    use crate::{SnowBinError, SnowBinInfo};
 
     #[test]
     fn info_test() -> Result<(), SnowBinError> {
@@ -21,32 +21,32 @@ mod default_tests {
         SnowBinInfo::new(u64::MAX, 64)?;
 
         assert_eq!(
-            SnowBinInfo::new(1, 8).unwrap_err().error_type(),
-            SnowBinErrorTypes::HeaderSizeTooSmall
+            SnowBinInfo::new(1, 8).unwrap_err(),
+            SnowBinError::HeaderSizeTooSmall
         );
         assert_eq!(
-            SnowBinInfo::new(1, 16).unwrap_err().error_type(),
-            SnowBinErrorTypes::HeaderSizeTooSmall
+            SnowBinInfo::new(1, 16).unwrap_err(),
+            SnowBinError::HeaderSizeTooSmall
         );
         assert_eq!(
-            SnowBinInfo::new(1, 32).unwrap_err().error_type(),
-            SnowBinErrorTypes::HeaderSizeTooSmall
+            SnowBinInfo::new(1, 32).unwrap_err(),
+            SnowBinError::HeaderSizeTooSmall
         );
         assert_eq!(
-            SnowBinInfo::new(1, 64).unwrap_err().error_type(),
-            SnowBinErrorTypes::HeaderSizeTooSmall
+            SnowBinInfo::new(1, 64).unwrap_err(),
+            SnowBinError::HeaderSizeTooSmall
         );
         assert_eq!(
-            SnowBinInfo::new(1, 1).unwrap_err().error_type(),
-            SnowBinErrorTypes::HeaderSizeTooSmall
+            SnowBinInfo::new(1, 1).unwrap_err(),
+            SnowBinError::HeaderSizeTooSmall
         );
         assert_eq!(
-            SnowBinInfo::new(8, 1).unwrap_err().error_type(),
-            SnowBinErrorTypes::DataSizeNotAllowed
+            SnowBinInfo::new(8, 1).unwrap_err(),
+            SnowBinError::DataSizeNotAllowed
         );
         assert_eq!(
-            SnowBinInfo::new(8, u8::MAX).unwrap_err().error_type(),
-            SnowBinErrorTypes::DataSizeNotAllowed
+            SnowBinInfo::new(8, u8::MAX).unwrap_err(),
+            SnowBinError::DataSizeNotAllowed
         );
 
         Ok(())
@@ -55,7 +55,7 @@ mod default_tests {
 
 #[cfg(feature = "v_hash")]
 mod v_hash_tests {
-    use crate::{SnowBinError, SnowBinErrorTypes, SnowBinInfo};
+    use crate::{SnowBinError, SnowBinInfo};
 
     #[test]
     fn info_test() -> Result<(), SnowBinError> {
@@ -75,40 +75,32 @@ mod v_hash_tests {
         SnowBinInfo::new_with_v_hash(u64::MAX, 64)?;
 
         assert_eq!(
-            SnowBinInfo::new_with_v_hash(1, 8).unwrap_err().error_type(),
-            SnowBinErrorTypes::HeaderSizeTooSmall
+            SnowBinInfo::new_with_v_hash(1, 8).unwrap_err(),
+            SnowBinError::HeaderSizeTooSmall
         );
         assert_eq!(
-            SnowBinInfo::new_with_v_hash(1, 16)
-                .unwrap_err()
-                .error_type(),
-            SnowBinErrorTypes::HeaderSizeTooSmall
+            SnowBinInfo::new_with_v_hash(1, 16).unwrap_err(),
+            SnowBinError::HeaderSizeTooSmall
         );
         assert_eq!(
-            SnowBinInfo::new_with_v_hash(1, 32)
-                .unwrap_err()
-                .error_type(),
-            SnowBinErrorTypes::HeaderSizeTooSmall
+            SnowBinInfo::new_with_v_hash(1, 32).unwrap_err(),
+            SnowBinError::HeaderSizeTooSmall
         );
         assert_eq!(
-            SnowBinInfo::new_with_v_hash(1, 64)
-                .unwrap_err()
-                .error_type(),
-            SnowBinErrorTypes::HeaderSizeTooSmall
+            SnowBinInfo::new_with_v_hash(1, 64).unwrap_err(),
+            SnowBinError::HeaderSizeTooSmall
         );
         assert_eq!(
-            SnowBinInfo::new_with_v_hash(1, 1).unwrap_err().error_type(),
-            SnowBinErrorTypes::HeaderSizeTooSmall
+            SnowBinInfo::new_with_v_hash(1, 1).unwrap_err(),
+            SnowBinError::HeaderSizeTooSmall
         );
         assert_eq!(
-            SnowBinInfo::new_with_v_hash(8, 1).unwrap_err().error_type(),
-            SnowBinErrorTypes::DataSizeNotAllowed
+            SnowBinInfo::new_with_v_hash(8, 1).unwrap_err(),
+            SnowBinError::DataSizeNotAllowed
         );
         assert_eq!(
-            SnowBinInfo::new_with_v_hash(8, u8::MAX)
-                .unwrap_err()
-                .error_type(),
-            SnowBinErrorTypes::DataSizeNotAllowed
+            SnowBinInfo::new_with_v_hash(8, u8::MAX).unwrap_err(),
+            SnowBinError::DataSizeNotAllowed
         );
 
         Ok(())

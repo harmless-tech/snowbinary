@@ -1,11 +1,12 @@
 use std::{convert::TryInto, fs::File, io::Read, mem};
 
-use crate::error::{SnowBinError, SnowBinErrorTypes};
+use crate::error::SnowBinError;
 
+#[inline]
 pub fn error(result: std::io::Result<usize>) -> Result<usize, SnowBinError> {
     match result {
         Ok(r) => Ok(r),
-        Err(_) => Err(SnowBinError::new(SnowBinErrorTypes::IOReadError)),
+        Err(_) => Err(SnowBinError::IOReadError),
     }
 }
 
@@ -13,7 +14,7 @@ pub fn read_header(file: &mut File, header_len: u64) -> Result<String, SnowBinEr
     let mut buffer = vec![32_u8; header_len as usize];
     error(file.by_ref().take(header_len).read(&mut buffer))?;
 
-    String::from_utf8(buffer).map_err(|_| SnowBinError::new(SnowBinErrorTypes::MalformedHeader))
+    String::from_utf8(buffer).map_err(|_| SnowBinError::MalformedHeader)
 }
 
 pub fn read_bytes(file: &mut File, length: u64) -> Result<Vec<u8>, SnowBinError> {
@@ -31,7 +32,7 @@ pub fn read_u8(file: &mut File) -> Result<u8, SnowBinError> {
     let uint = u8::from_be_bytes(
         uint_bytes
             .try_into()
-            .map_err(|_| SnowBinError::new(SnowBinErrorTypes::MalformedUInt))?,
+            .map_err(|_| SnowBinError::MalformedUInt)?,
     );
 
     Ok(uint)
@@ -45,7 +46,7 @@ pub fn read_u16(file: &mut File) -> Result<u16, SnowBinError> {
     let uint = u16::from_be_bytes(
         uint_bytes
             .try_into()
-            .map_err(|_| SnowBinError::new(SnowBinErrorTypes::MalformedUInt))?,
+            .map_err(|_| SnowBinError::MalformedUInt)?,
     );
 
     Ok(uint)
@@ -59,7 +60,7 @@ pub fn read_u32(file: &mut File) -> Result<u32, SnowBinError> {
     let uint = u32::from_be_bytes(
         uint_bytes
             .try_into()
-            .map_err(|_| SnowBinError::new(SnowBinErrorTypes::MalformedUInt))?,
+            .map_err(|_| SnowBinError::MalformedUInt)?,
     );
 
     Ok(uint)
@@ -73,7 +74,7 @@ pub fn read_u64(file: &mut File) -> Result<u64, SnowBinError> {
     let uint = u64::from_be_bytes(
         uint_bytes
             .try_into()
-            .map_err(|_| SnowBinError::new(SnowBinErrorTypes::MalformedUInt))?,
+            .map_err(|_| SnowBinError::MalformedUInt)?,
     );
 
     Ok(uint)

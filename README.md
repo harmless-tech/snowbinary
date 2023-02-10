@@ -23,7 +23,7 @@ A binary file format, writer and reader.
 }
 ```
 
-## Binary Format
+## Binary Format (Supported by this version)
 
 #### Spec 1
 
@@ -41,5 +41,5 @@ A binary file format, writer and reader.
   - Data size of MAX_DATA_SIZE.
   - Data.
   - An 8 byte verification hash, if enabled. (Only allowed if feature v_hash is enabled.)
-  - Repeat until \/.
+  - Repeat until \\/.
 - End with a MAX_HEADER_SIZE header of "SNOW_END".

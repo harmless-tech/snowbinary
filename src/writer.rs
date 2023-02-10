@@ -1,17 +1,18 @@
 use std::{fs::File, io::Write};
 
-use crate::error::{SnowBinError, SnowBinErrorTypes};
+use crate::error::SnowBinError;
 
+#[inline]
 pub fn error(result: std::io::Result<()>) -> Result<(), SnowBinError> {
     match result {
         Ok(r) => Ok(r),
-        Err(_) => Err(SnowBinError::new(SnowBinErrorTypes::IOWriteError)),
+        Err(_) => Err(SnowBinError::IOWriteError),
     }
 }
 
 pub fn write_header(file: &mut File, header: &str, header_len: u64) -> Result<(), SnowBinError> {
     if header.len() as u64 > header_len {
-        return Err(SnowBinError::new(SnowBinErrorTypes::HeaderTooLong));
+        return Err(SnowBinError::HeaderTooLong);
     }
 
     let null_buffer = vec![0_u8; (header_len - header.len() as u64) as usize];
