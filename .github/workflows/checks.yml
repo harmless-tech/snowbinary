@@ -34,7 +34,7 @@ jobs:
             ~/.cargo/registry/cache
             ~/.cargo/git/db
             target
-          key: ${{ runner.os }}-clippy-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-clippy-${{ hashFiles('**/Cargo.toml') }}
       - name: Update Rust
         run: rustup update
       - name: Rust Version

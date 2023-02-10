@@ -38,7 +38,7 @@ jobs:
         with:
           path: |
             target
-          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-${{ hashFiles('**/Cargo.toml') }}
       - name: Update Rust
         run: rustup update
       - name: Rust Version
@@ -61,7 +61,7 @@ jobs:
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
             ~/.cargo/git/db
-          key: ${{ runner.os }}-deps-cache-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-deps-cache-${{ hashFiles('**/Cargo.toml') }}
       - name: Update Rust
         run: rustup update
       - name: Rust Version
@@ -135,7 +135,7 @@ jobs:
         with:
           path: |
             target
-          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-${{ hashFiles('**/Cargo.toml') }}
       - name: Update Rust
         run: rustup update
       - name: Rust Version
@@ -161,7 +161,7 @@ jobs:
         with:
           path: |
             target
-          key: ${{ runner.os }}-x86_64-apple-darwin-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-x86_64-apple-darwin-${{ hashFiles('**/Cargo.toml') }}
       - name: Update Rust
         run: rustup update
       - name: Rust Version
@@ -187,7 +187,7 @@ jobs:
         with:
           path: |
             target
-          key: ${{ runner.os }}-aarch64-apple-darwin-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-aarch64-apple-darwin-${{ hashFiles('**/Cargo.toml') }}
       - name: Update Rust
         run: rustup update
       - name: Rust Version
@@ -213,7 +213,7 @@ jobs:
         with:
           path: |
             target
-          key: ${{ runner.os }}-x86_64-pc-windows-msvc-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-x86_64-pc-windows-msvc-${{ hashFiles('**/Cargo.toml') }}
       - name: Update Rust
         run: rustup update
       - name: Rust Version
@@ -239,7 +239,7 @@ jobs:
         with:
           path: |
             target
-          key: ${{ runner.os }}-i686-pc-windows-msvc-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-i686-pc-windows-msvc-${{ hashFiles('**/Cargo.toml') }}
       - name: Update Rust
         run: rustup update
       - name: Rust Version
@@ -278,7 +278,7 @@ jobs:
         with:
           path: |
             target
-          key: ${{ runner.os }}-${{ matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ matrix.target }}-${{ hashFiles('**/Cargo.toml') }}
       - name: Update Rust
         run: rustup update
       - name: Rust Version
