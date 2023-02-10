@@ -8,7 +8,7 @@ readme = "README.md"
 repository = "https://github.com/harmless-tech/snowbinary"
 license = "MIT"
 keywords = ["file"]
-exclude = [".github/*", "rustfmt.toml", "target/*", ".gitignore", "Cargo.lock", "justfile"]
+exclude = [".github/*", "target/*", ".gitignore", "Cargo.lock", "justfile", "rustfmt.toml"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

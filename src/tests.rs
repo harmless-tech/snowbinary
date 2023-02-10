@@ -1,5 +1,6 @@
 mod default_tests {
     use std::path::PathBuf;
+
     use crate::{SnowBinError, SnowBinInfo, SnowBinReader, SnowBinWriter};
 
     #[test]
@@ -68,7 +69,10 @@ mod default_tests {
             let mut reader = SnowBinReader::new(PathBuf::from("./file.temp"))?;
 
             reader.read("TEST").unwrap();
-            assert_eq!(reader.read("NULL_NO").unwrap_err(), SnowBinError::ReachedEOF)
+            assert_eq!(
+                reader.read("NULL_NO").unwrap_err(),
+                SnowBinError::ReachedEOF
+            )
         }
 
         Ok(())

@@ -79,8 +79,3 @@ pub fn read_u64(file: &mut File) -> Result<u64, SnowBinError> {
 
     Ok(uint)
 }
-
-pub fn read_bool(file: &mut File) -> Result<bool, SnowBinError> {
-    let byte = read_u8(file)?;
-    Ok(!matches!(byte, 0))
-}

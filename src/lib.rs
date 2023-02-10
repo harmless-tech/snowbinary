@@ -17,8 +17,6 @@ use std::{
     path::PathBuf,
 };
 
-use blake3;
-
 use crate::error::SnowBinError;
 
 /// The version of the Spec that this library can interact with.
@@ -30,7 +28,7 @@ const DEFAULT_DATA_SIZE: usize = 3;
 
 // In bytes.
 const DATA_START: u64 = 21;
-const HASH_SIZE: u64 = 32;
+const HASH_SIZE: usize = 32;
 
 /// Holds information used by SnowBinWriter to create and write to files.
 /// Default returns SnowBinInfo with a header size of 8 and a data size of 64.
@@ -126,7 +124,11 @@ impl SnowBinWriter {
         })
     }
 
-    fn init_file(file: &mut File, hasher: &mut blake3::Hasher, info: &SnowBinInfo) -> Result<(), SnowBinError> {
+    fn init_file(
+        file: &mut File,
+        hasher: &mut blake3::Hasher,
+        info: &SnowBinInfo,
+    ) -> Result<(), SnowBinError> {
         file.rewind().map_err(|_| SnowBinError::IOWriteError)?;
 
         writer::write_header(file, "SNOW_BIN", 8)?;
@@ -179,19 +181,19 @@ impl SnowBinWriter {
                 8 => {
                     writer::write_u8(&mut self.file, data.len() as u8)?;
                     self.hasher.update(&(data.len() as u8).to_le_bytes());
-                },
+                }
                 16 => {
                     writer::write_u16(&mut self.file, data.len() as u16)?;
                     self.hasher.update(&(data.len() as u16).to_le_bytes());
-                },
+                }
                 32 => {
                     writer::write_u32(&mut self.file, data.len() as u32)?;
                     self.hasher.update(&(data.len() as u32).to_le_bytes());
-                },
+                }
                 64 => {
                     writer::write_u64(&mut self.file, data.len() as u64)?;
                     self.hasher.update(&(data.len() as u64).to_le_bytes());
-                },
+                }
                 _ => return Err(SnowBinError::DataSizeNotAllowed),
             }
 
@@ -257,7 +259,8 @@ impl SnowBinWriter {
 impl Drop for SnowBinWriter {
     fn drop(&mut self) {
         if !self.done {
-            self.close().expect("Could not properly drop SnowBinWriter.");
+            self.close()
+                .expect("Could not properly drop SnowBinWriter.");
         }
     }
 }
@@ -294,9 +297,29 @@ impl SnowBinReader {
     }
 
     fn read_info(file: &mut File) -> Result<SnowBinInfo, SnowBinError> {
-        // TODO: Check hash!
+        use std::io::Read;
+
         // Check hash
-        file.seek(SeekFrom::End(32)).map_err(|_| SnowBinError::IOReadError)?;
+        let hash = {
+            file.rewind().map_err(|_| SnowBinError::IOReadError)?;
+            let mut buffer = Vec::new();
+            file.read_to_end(&mut buffer)
+                .map_err(|_| SnowBinError::IOReadError)?;
+            buffer.drain((buffer.len() - HASH_SIZE)..buffer.len());
+
+            blake3::hash(&buffer)
+        };
+        let hash = hash.as_bytes();
+
+        {
+            file.seek(SeekFrom::End(-(HASH_SIZE as i64)))
+                .map_err(|_| SnowBinError::IOReadError)?;
+            let read_hash = reader::read_bytes(file, HASH_SIZE as u64)?;
+
+            if !read_hash.eq(hash) {
+                return Err(SnowBinError::HashDoesNotMatch);
+            }
+        }
 
         // Read file config
         file.rewind().map_err(|_| SnowBinError::IOReadError)?;
@@ -336,7 +359,7 @@ impl SnowBinReader {
     /// let mut reader = SnowBinReader::new(PathBuf::from("file.temp"));
     /// match &mut reader {
     ///     Ok(reader) => {
-    ///         let data = reader.read("Header").unwrap();
+    ///         let data = reader.read("Header"); // May return error
     ///     }
     ///     Err(_) => {}
     /// }
@@ -372,7 +395,10 @@ impl SnowBinReader {
                 data = reader::read_bytes(&mut self.file, size)?;
             }
             else {
-                let tmp = self.file.seek(SeekFrom::Current(size as i64)).map_err(|_| SnowBinError::IOReadError)?;
+                let tmp = self
+                    .file
+                    .seek(SeekFrom::Current(size as i64))
+                    .map_err(|_| SnowBinError::IOReadError)?;
                 if tmp == store {
                     return Err(SnowBinError::ReachedEOF);
                 }

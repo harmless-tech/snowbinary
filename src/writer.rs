@@ -10,7 +10,11 @@ pub fn error(result: std::io::Result<()>) -> Result<(), SnowBinError> {
     }
 }
 
-pub fn write_header(file: &mut File, header: &str, header_len: u32) -> Result<Vec<u8>, SnowBinError> {
+pub fn write_header(
+    file: &mut File,
+    header: &str,
+    header_len: u32,
+) -> Result<Vec<u8>, SnowBinError> {
     if header.len() as u32 > header_len {
         return Err(SnowBinError::HeaderTooLong);
     }
@@ -44,10 +48,5 @@ pub fn write_u32(file: &mut File, data: u32) -> Result<(), SnowBinError> {
 
 pub fn write_u64(file: &mut File, data: u64) -> Result<(), SnowBinError> {
     let buffer = &(data).to_le_bytes();
-    error(file.by_ref().write_all(buffer))
-}
-
-pub fn write_bool(file: &mut File, data: bool) -> Result<(), SnowBinError> {
-    let buffer = &(data as u8).to_le_bytes();
     error(file.by_ref().write_all(buffer))
 }

@@ -5,7 +5,7 @@
 [![Crates.io](https://img.shields.io/crates/v/snowbinary)](https://crates.io/crates/snowbinary)
 [![docs.rs](https://img.shields.io/docsrs/snowbinary/latest)](https://docs.rs/snowbinary/latest/snowbinary)
 
-A binary file format, writer and reader.
+A basic header based binary file format, writer and reader.
 
 ## Basic Example
 
@@ -36,7 +36,7 @@ A binary file format, writer and reader.
 - Then 4 bytes showing the max header size in bytes. (At least 8 bytes, max of u32::MAX bytes) (u32)
 - Then 1 byte showing the max data size.  (u8::MAX, u16::MAX, u32::MAX, u64::MAX) (u8)
 - Then write data:
-  - Header of MAX_HEADER_SIZE. (No conflicting header names. (This is not checked by the writer or reader.))
+  - Header of MAX_HEADER_SIZE. (No conflicting header names. This is not checked by the writer or reader.)
   - Data size of MAX_DATA_SIZE.
   - Data.
   - Repeat until \\/.
