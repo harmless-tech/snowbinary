@@ -10,9 +10,9 @@ pub fn error(result: std::io::Result<usize>) -> Result<usize, SnowBinError> {
     }
 }
 
-pub fn read_header(file: &mut File, header_len: u64) -> Result<String, SnowBinError> {
+pub fn read_header(file: &mut File, header_len: u32) -> Result<String, SnowBinError> {
     let mut buffer = vec![32_u8; header_len as usize];
-    error(file.by_ref().take(header_len).read(&mut buffer))?;
+    error(file.by_ref().take(header_len as u64).read(&mut buffer))?;
 
     String::from_utf8(buffer).map_err(|_| SnowBinError::MalformedHeader)
 }
@@ -29,7 +29,7 @@ pub fn read_u8(file: &mut File) -> Result<u8, SnowBinError> {
     error(file.by_ref().take(1).read(&mut buffer))?;
 
     let (uint_bytes, _) = buffer.split_at(mem::size_of::<u8>());
-    let uint = u8::from_be_bytes(
+    let uint = u8::from_le_bytes(
         uint_bytes
             .try_into()
             .map_err(|_| SnowBinError::MalformedUInt)?,
@@ -43,7 +43,7 @@ pub fn read_u16(file: &mut File) -> Result<u16, SnowBinError> {
     error(file.by_ref().take(2).read(&mut buffer))?;
 
     let (uint_bytes, _) = buffer.split_at(mem::size_of::<u16>());
-    let uint = u16::from_be_bytes(
+    let uint = u16::from_le_bytes(
         uint_bytes
             .try_into()
             .map_err(|_| SnowBinError::MalformedUInt)?,
@@ -57,7 +57,7 @@ pub fn read_u32(file: &mut File) -> Result<u32, SnowBinError> {
     error(file.by_ref().take(4).read(&mut buffer))?;
 
     let (uint_bytes, _) = buffer.split_at(mem::size_of::<u32>());
-    let uint = u32::from_be_bytes(
+    let uint = u32::from_le_bytes(
         uint_bytes
             .try_into()
             .map_err(|_| SnowBinError::MalformedUInt)?,
@@ -71,7 +71,7 @@ pub fn read_u64(file: &mut File) -> Result<u64, SnowBinError> {
     error(file.by_ref().take(8).read(&mut buffer))?;
 
     let (uint_bytes, _) = buffer.split_at(mem::size_of::<u64>());
-    let uint = u64::from_be_bytes(
+    let uint = u64::from_le_bytes(
         uint_bytes
             .try_into()
             .map_err(|_| SnowBinError::MalformedUInt)?,

@@ -6,9 +6,6 @@ pub enum SnowBinError {
     /// The data size used is not 8, 16, 32, or 64.
     #[error("Data Size is not 8, 16, 32, or 64.")]
     DataSizeNotAllowed,
-    /// A SnowBinary file uses verify hashing, but the feature v_hash is not enabled.
-    #[error("Verify hashing not enabled, please enable the \"vhash\" feature.")]
-    VerifyHashingNotEnabled,
     /// The file given could not be created or opened.
     #[error("Could not create or open the file.")]
     CouldNotCreateOrOpenFile,

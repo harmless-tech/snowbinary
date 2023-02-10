@@ -1,7 +1,6 @@
-//TODO Writing and Reading tests.
-
 mod default_tests {
-    use crate::{SnowBinError, SnowBinInfo};
+    use std::path::PathBuf;
+    use crate::{SnowBinError, SnowBinInfo, SnowBinReader, SnowBinWriter};
 
     #[test]
     fn info_test() -> Result<(), SnowBinError> {
@@ -12,13 +11,13 @@ mod default_tests {
         SnowBinInfo::new(8, 32)?;
         SnowBinInfo::new(8, 64)?;
         SnowBinInfo::new(34785382, 8)?;
-        SnowBinInfo::new(755463454, 16)?;
-        SnowBinInfo::new(7864263463, 32)?;
-        SnowBinInfo::new(45662346234, 64)?;
-        SnowBinInfo::new(u64::MAX, 8)?;
-        SnowBinInfo::new(u64::MAX, 16)?;
-        SnowBinInfo::new(u64::MAX, 32)?;
-        SnowBinInfo::new(u64::MAX, 64)?;
+        SnowBinInfo::new(7543454, 16)?;
+        SnowBinInfo::new(7843463, 32)?;
+        SnowBinInfo::new(45646234, 64)?;
+        SnowBinInfo::new(u32::MAX, 8)?;
+        SnowBinInfo::new(u32::MAX, 16)?;
+        SnowBinInfo::new(u32::MAX, 32)?;
+        SnowBinInfo::new(u32::MAX, 64)?;
 
         assert_eq!(
             SnowBinInfo::new(1, 8).unwrap_err(),
@@ -51,57 +50,26 @@ mod default_tests {
 
         Ok(())
     }
-}
-
-#[cfg(feature = "v_hash")]
-mod v_hash_tests {
-    use crate::{SnowBinError, SnowBinInfo};
 
     #[test]
-    fn info_test() -> Result<(), SnowBinError> {
-        SnowBinInfo::default_with_v_hash();
+    fn h_test() -> Result<(), SnowBinError> {
+        {
+            let info = SnowBinInfo::new(8, 64)?;
+            let mut writer = SnowBinWriter::new(&info, PathBuf::from("./file.temp"))?;
 
-        SnowBinInfo::new_with_v_hash(8, 8)?;
-        SnowBinInfo::new_with_v_hash(8, 16)?;
-        SnowBinInfo::new_with_v_hash(8, 32)?;
-        SnowBinInfo::new_with_v_hash(8, 64)?;
-        SnowBinInfo::new_with_v_hash(34785382, 8)?;
-        SnowBinInfo::new_with_v_hash(755463454, 16)?;
-        SnowBinInfo::new_with_v_hash(7864263463, 32)?;
-        SnowBinInfo::new_with_v_hash(45662346234, 64)?;
-        SnowBinInfo::new_with_v_hash(u64::MAX, 8)?;
-        SnowBinInfo::new_with_v_hash(u64::MAX, 16)?;
-        SnowBinInfo::new_with_v_hash(u64::MAX, 32)?;
-        SnowBinInfo::new_with_v_hash(u64::MAX, 64)?;
+            writer.write("TEST", "This is a String!".as_bytes())?;
+            writer.write("TEST321", "This is a String!".as_bytes())?;
+            writer.write("Header", "This is for doc tests!".as_bytes())?;
 
-        assert_eq!(
-            SnowBinInfo::new_with_v_hash(1, 8).unwrap_err(),
-            SnowBinError::HeaderSizeTooSmall
-        );
-        assert_eq!(
-            SnowBinInfo::new_with_v_hash(1, 16).unwrap_err(),
-            SnowBinError::HeaderSizeTooSmall
-        );
-        assert_eq!(
-            SnowBinInfo::new_with_v_hash(1, 32).unwrap_err(),
-            SnowBinError::HeaderSizeTooSmall
-        );
-        assert_eq!(
-            SnowBinInfo::new_with_v_hash(1, 64).unwrap_err(),
-            SnowBinError::HeaderSizeTooSmall
-        );
-        assert_eq!(
-            SnowBinInfo::new_with_v_hash(1, 1).unwrap_err(),
-            SnowBinError::HeaderSizeTooSmall
-        );
-        assert_eq!(
-            SnowBinInfo::new_with_v_hash(8, 1).unwrap_err(),
-            SnowBinError::DataSizeNotAllowed
-        );
-        assert_eq!(
-            SnowBinInfo::new_with_v_hash(8, u8::MAX).unwrap_err(),
-            SnowBinError::DataSizeNotAllowed
-        );
+            writer.close()?;
+        }
+
+        {
+            let mut reader = SnowBinReader::new(PathBuf::from("./file.temp"))?;
+
+            reader.read("TEST").unwrap();
+            assert_eq!(reader.read("NULL_NO").unwrap_err(), SnowBinError::ReachedEOF)
+        }
 
         Ok(())
     }
