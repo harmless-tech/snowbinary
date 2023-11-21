@@ -4,6 +4,7 @@
 [![Rust Build, Test, and Release](https://github.com/harmless-tech/snowbinary/actions/workflows/release.yml/badge.svg)](https://github.com/harmless-tech/snowbinary/actions/workflows/release.yml)
 [![Crates.io](https://img.shields.io/crates/v/snowbinary)](https://crates.io/crates/snowbinary)
 [![docs.rs](https://img.shields.io/docsrs/snowbinary/latest)](https://docs.rs/snowbinary/latest/snowbinary)
+[![rustc-msrv](https://img.shields.io/badge/rustc-1.66%2B-blue?logo=rust)](https://www.rust-lang.org/tools/install)
 
 A basic header based binary file format, writer and reader.
 
