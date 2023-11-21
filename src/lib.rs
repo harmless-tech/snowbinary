@@ -1,5 +1,4 @@
 #![warn(missing_docs)]
-#![warn(rustdoc::missing_doc_code_examples)]
 
 //! Easy to use binary file writer and reader with its own format.
 
