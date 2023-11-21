@@ -1,218 +1,151 @@
 name: Rust Build and Test
+### https://github.com/harmless-tech/rust-github-actions
 
 on:
   push:
     branches: [ main ]
+    paths: [ .github/workflows/build.yml, keys/**, src/**, test/**, build.rs, Cargo.lock, Cargo.toml, Cross.toml ]
   pull_request:
     branches: [ main ]
+    paths: [ .github/workflows/build.yml, keys/**, src/**, test/**, build.rs, Cargo.lock, Cargo.toml, Cross.toml ]
   workflow_dispatch:
 
 env:
+  feature-set: ''
   CARGO_TERM_COLOR: always
 
 jobs:
-  deps:
+  ink-cross:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: aarch64-unknown-linux-gnu
+            can-test: false
+          - target: aarch64-unknown-linux-musl
+            can-test: false
+          - target: armv7-unknown-linux-gnueabihf
+            can-test: false
+          - target: armv7-unknown-linux-musleabihf
+            can-test: false
+          - target: powerpc64le-unknown-linux-gnu
+            can-test: false
+          - target: riscv64gc-unknown-linux-gnu
+            can-test: false
+          - target: s390x-unknown-linux-gnu
+            can-test: false
+          - target: x86_64-unknown-linux-gnu
+            can-test: true
+          - target: x86_64-unknown-linux-musl
+            can-test: true
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Create Folders
-        run: |
-          mkdir -p ~/.cargo/registry/index
-          mkdir -p ~/.cargo/registry/cache
-          mkdir -p ~/.cargo/git/db
-      - uses: actions/cache@v3
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
         with:
-          path: |
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-          key: ${{ runner.os }}-deps-cache-${{ hashFiles('**/Cargo.toml') }}
-      - name: Update Rust
-        run: rustup update
-      - name: Rust Version
-        run: rustc --version
-      - name: Download Deps
-        run: cargo fetch --verbose
-      - name: Bundle Deps
-        run: |
-          mkdir -p .cargo-store/.cargo-store/registry
-          mkdir -p .cargo-store/.cargo-store/git
-          cp -r ~/.cargo/registry/index ./.cargo-store/.cargo-store/registry/index
-          cp -r ~/.cargo/registry/cache ./.cargo-store/.cargo-store/registry/cache
-          cp -r ~/.cargo/git/db ./.cargo-store/.cargo-store/git/db
-      - name: Store Crate Deps
-        uses: actions/upload-artifact@v3
-        with:
-          name: crate-deps
-          path: .cargo-store
-          retention-days: 1
-
-  x86_64-unknown-linux-gnu:
-    runs-on: ubuntu-latest
-    needs: [ deps ]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Download Deps
-        uses: actions/download-artifact@v3
-        with:
-          name: crate-deps
-      - name: Move Deps
-        run: |
-          mv ./.cargo-store/* ~/.cargo
-      - uses: actions/cache@v3
-        with:
-          path: |
-            target
-          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-${{ hashFiles('**/Cargo.toml') }}
-      - name: Update Rust
-        run: rustup update
-      - name: Rust Version
-        run: rustc --version
+          key: ${{ matrix.target }}
       - name: Run tests
-        run: cargo test --verbose --workspace --all-features
-      - name: Build
-        run: cargo build --verbose --workspace
-
-  x86_64-apple-darwin:
-    runs-on: macos-12
-    needs: [ deps ]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Download Deps
-        uses: actions/download-artifact@v3
-        with:
-          name: crate-deps
-      - name: Move Deps
+        if: ${{ matrix.can-test }}
         run: |
-          mv ./.cargo-store/* ~/.cargo
-      - uses: actions/cache@v3
-        with:
-          path: |
-            target
-          key: ${{ runner.os }}-x86_64-apple-darwin-${{ hashFiles('**/Cargo.toml') }}
-      - name: Update Rust
-        run: rustup update
-      - name: Rust Version
-        run: rustc --version
-      - name: Run tests
-        run: cargo test --verbose --workspace --all-features
-      - name: Build
-        run: cargo build --verbose --workspace
-
-  aarch64-apple-darwin:
-    runs-on: macos-12
-    needs: [ deps ]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Download Deps
-        uses: actions/download-artifact@v3
-        with:
-          name: crate-deps
-      - name: Move Deps
+          docker run --rm \
+          --userns host --user $(id -u):$(id -g) \
+          -v ./:/project \
+          ghcr.io/cargo-prebuilt/ink-cross:stable-${{ matrix.target }} \
+          test --verbose --workspace --locked --target ${{ matrix.target }} ${{ env.feature-set }}
+      - name: Build with ink cross
         run: |
-          mv ./.cargo-store/* ~/.cargo
-      - uses: actions/cache@v3
-        with:
-          path: |
-            target
-          key: ${{ runner.os }}-aarch64-apple-darwin-${{ hashFiles('**/Cargo.toml') }}
-      - name: Update Rust
-        run: rustup update
-      - name: Rust Version
-        run: rustc --version
-      - name: Add Rust target
-        run: rustup target add aarch64-apple-darwin
-      - name: Build
-        run: cargo build --verbose --workspace --target aarch64-apple-darwin
-
-  x86_64-pc-windows-msvc:
-    runs-on: windows-latest
-    needs: [ deps ]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Download Deps
-        uses: actions/download-artifact@v3
-        with:
-          name: crate-deps
-      - name: Move Deps
-        run: |
-          mv ./.cargo-store/* ~/.cargo
-      - uses: actions/cache@v3
-        with:
-          path: |
-            target
-          key: ${{ runner.os }}-x86_64-pc-windows-msvc-${{ hashFiles('**/Cargo.toml') }}
-      - name: Update Rust
-        run: rustup update
-      - name: Rust Version
-        run: rustc --version
-      - name: Run tests
-        run: cargo test --verbose --workspace --all-features
-      - name: Build
-        run: cargo build --verbose --workspace
-
-  i686-pc-windows-msvc:
-    runs-on: windows-latest
-    needs: [ deps ]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Download Deps
-        uses: actions/download-artifact@v3
-        with:
-          name: crate-deps
-      - name: Move Deps
-        run: |
-          mv ./.cargo-store/* ~/.cargo
-      - uses: actions/cache@v3
-        with:
-          path: |
-            target
-          key: ${{ runner.os }}-i686-pc-windows-msvc-${{ hashFiles('**/Cargo.toml') }}
-      - name: Update Rust
-        run: rustup update
-      - name: Rust Version
-        run: rustc --version
-      - name: Add Rust target
-        run: rustup target add i686-pc-windows-msvc
-      - name: Run tests
-        run: cargo test --verbose --workspace --all-features --target i686-pc-windows-msvc
-      - name: Build
-        run: cargo build --verbose --workspace --target i686-pc-windows-msvc
+          docker run --rm \
+          --userns host --user $(id -u):$(id -g) \
+          -v ./:/project \
+          ghcr.io/cargo-prebuilt/ink-cross:stable-${{ matrix.target }} \
+          build --verbose --workspace --locked --target ${{ matrix.target }} ${{ env.feature-set }}
 
   cross:
     strategy:
       fail-fast: false
       matrix:
-        target:
-          - x86_64-unknown-linux-musl
-          - aarch64-unknown-linux-gnu
-          - aarch64-unknown-linux-musl
-          - riscv64gc-unknown-linux-gnu
-          - s390x-unknown-linux-gnu
-          - armv7-unknown-linux-gnueabihf
-          - armv7-unknown-linux-musleabihf
+        include:
+          - target: x86_64-unknown-freebsd
+            can-test: false
+          - target: x86_64-unknown-netbsd
+            can-test: false
+          - target: x86_64-unknown-illumos
+            can-test: false
+          - target: x86_64-sun-solaris
+            can-test: false
+          - target: powerpc64-unknown-linux-gnu
+            can-test: true
+          - target: x86_64-pc-windows-gnu
+            can-test: true
+            ending: .exe
     runs-on: ubuntu-latest
-    needs: [ deps ]
     steps:
-      - uses: actions/checkout@v3
-      - name: Download Deps
-        uses: actions/download-artifact@v3
-        with:
-          name: crate-deps
-      - name: Move Deps
+      - uses: actions/checkout@v4
+      - name: Update Rust and add target
         run: |
-          mv ./.cargo-store/* ~/.cargo
-      - uses: actions/cache@v3
+          rustup update
+          rustc --version
+          rustup target add ${{ matrix.target }}
+      - uses: cargo-prebuilt/cargo-prebuilt-action@v3
         with:
-          path: |
-            target
-          key: ${{ runner.os }}-${{ matrix.target }}-${{ hashFiles('**/Cargo.toml') }}
-      - name: Update Rust
-        run: rustup update
-      - name: Rust Version
-        run: rustc --version
-      - uses: taiki-e/install-action@v2
+          pkgs: cross
+      - uses: Swatinem/rust-cache@v2
         with:
-          tool: cross
+          key: ${{ matrix.target }}
+      - name: Run tests
+        if: ${{ matrix.can-test }}
+        run: cross test --verbose --workspace --locked --target ${{ matrix.target }} ${{ env.feature-set }}
       - name: Build
-        run: cross build --verbose --workspace --target ${{ matrix.target }}
+        run: cross build --verbose --workspace --locked --target ${{ matrix.target }} ${{ env.feature-set }}
+
+  apple-darwin:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-apple-darwin
+            can-test: true
+          - target: aarch64-apple-darwin
+            can-test: false
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update Rust and add target
+        run: |
+          rustup update
+          rustc --version
+          rustup target add ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+      - name: Run tests
+        if: ${{ matrix.can-test }}
+        run: cargo test --verbose --workspace --locked --target ${{ matrix.target }} ${{ env.feature-set }}
+      - name: Build
+        run: cargo build --verbose --workspace --locked --target ${{ matrix.target }} ${{ env.feature-set }}
+
+  pc-windows-msvc:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-pc-windows-msvc
+            can-test: true
+          - target: aarch64-pc-windows-msvc
+            can-test: false
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update Rust and add target
+        run: |
+          rustup update
+          rustc --version
+          rustup target add ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+      - name: Run tests
+        if: ${{ matrix.can-test }}
+        run: cargo test --verbose --workspace --locked --target ${{ matrix.target }} ${{ env.feature-set }}
+      - name: Build
+        run: cargo build --verbose --workspace --locked --target ${{ matrix.target }} ${{ env.feature-set }}

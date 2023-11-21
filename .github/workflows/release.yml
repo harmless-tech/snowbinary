@@ -1,4 +1,5 @@
 name: Rust Build, Test, and Release
+### https://github.com/harmless-tech/rust-github-actions
 
 on:
   push:
@@ -7,284 +8,409 @@ on:
   workflow_dispatch:
 
 env:
+  feature-set: ''
+  hack-group: ''
+  cache: false
   CARGO_TERM_COLOR: always
 
 jobs:
-  check-fmt:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: nightly
-          components: |
-            rustfmt
-      - name: Rustfmt Check
-        run: cargo +nightly fmt --check
-
-  check-clippy:
-    runs-on: ubuntu-latest
-    needs: [ deps, x86_64-unknown-linux-gnu ]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Download Deps
-        uses: actions/download-artifact@v3
-        with:
-          name: crate-deps
-      - name: Move Deps
-        run: |
-          mv ./.cargo-store/* ~/.cargo
-      - uses: actions/cache@v3
-        with:
-          path: |
-            target
-          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-${{ hashFiles('**/Cargo.toml') }}
-      - name: Update Rust
-        run: rustup update
-      - name: Rust Version
-        run: rustc --version
-      - name: Clippy Check
-        run: cargo clippy --all-targets --all-features --verbose --workspace --release -- -D warnings
-
-  deps:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Create Folders
-        run: |
-          mkdir -p ~/.cargo/registry/index
-          mkdir -p ~/.cargo/registry/cache
-          mkdir -p ~/.cargo/git/db
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-          key: ${{ runner.os }}-deps-cache-${{ hashFiles('**/Cargo.toml') }}
-      - name: Update Rust
-        run: rustup update
-      - name: Rust Version
-        run: rustc --version
-      - name: Download Deps
-        run: cargo fetch --verbose
-      - name: Bundle Deps
-        run: |
-          mkdir -p .cargo-store/.cargo-store/registry
-          mkdir -p .cargo-store/.cargo-store/git
-          cp -r ~/.cargo/registry/index ./.cargo-store/.cargo-store/registry/index
-          cp -r ~/.cargo/registry/cache ./.cargo-store/.cargo-store/registry/cache
-          cp -r ~/.cargo/git/db ./.cargo-store/.cargo-store/git/db
-      - name: Store Crate Deps
-        uses: actions/upload-artifact@v3
-        with:
-          name: crate-deps
-          path: .cargo-store
-          retention-days: 1
-
   release:
+    outputs:
+      tag: ${{ github.ref_name }}
+      name: ${{ github.ref_name }}
+      prerelease: ${{ steps.regex-tag.outputs.match == '' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: KyoriPowered/action-regex-match@v3
+      - uses: actions/checkout@v4
+      - uses: KyoriPowered/action-regex-match@v4
         id: regex-tag
         with:
           text: ${{ github.ref }}
           regex: '^refs\/tags\/v\d+\.\d+\.\d+$'
-      - name: Create release
-        uses: ncipollo/release-action@v1
-        with:
-          prerelease: ${{ steps.regex-tag.outputs.match == '' }}
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-  publish:
-    needs: [ check-fmt, check-clippy, x86_64-unknown-linux-gnu, x86_64-apple-darwin, aarch64-apple-darwin, x86_64-pc-windows-msvc, i686-pc-windows-msvc, cross ]
+  publish-crates-io:
+    if: ${{ ! contains(github.ref, '-dev') }}
     runs-on: ubuntu-latest
+    needs: [ release, check-fmt, clippy, ink-cross, cross, apple-darwin, pc-windows-msvc ]
     steps:
-      - uses: actions/checkout@v3
-      - name: Download Deps
-        uses: actions/download-artifact@v3
-        with:
-          name: crate-deps
-      - name: Move Deps
-        run: |
-          mv ./.cargo-store/* ~/.cargo
+      - uses: actions/checkout@v4
       - name: Update Rust
-        run: rustup update
-      - name: Rust Version
-        run: rustc --version
-      - name: Publish
         run: |
-          cargo publish --verbose --token ${CRATES_TOKEN}
+          rustup update
+          rustc --version
+      - name: Publish
+        run: cargo publish --verbose --locked --token ${CRATES_TOKEN}
         env:
           CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
 
-  x86_64-unknown-linux-gnu:
+  publish-github-releases:
     runs-on: ubuntu-latest
-    needs: [ deps, release ]
+    needs: [ release, check-fmt, clippy, ink-cross, cross, apple-darwin, pc-windows-msvc ]
     steps:
-      - uses: actions/checkout@v3
-      - name: Download Deps
-        uses: actions/download-artifact@v3
+      - uses: actions/checkout@v4
+      - name: Create and push artifacts to release
+        uses: ncipollo/release-action@v1
         with:
-          name: crate-deps
-      - name: Move Deps
-        run: |
-          mv ./.cargo-store/* ~/.cargo
-      - uses: actions/cache@v3
-        with:
-          path: |
-            target
-          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-${{ hashFiles('**/Cargo.toml') }}
-      - name: Update Rust
-        run: rustup update
-      - name: Rust Version
-        run: rustc --version
-      - name: Run tests
-        run: cargo test --verbose --workspace --all-features --release
-      - name: Build
-        run: cargo build --verbose --workspace --release
+          tag: ${{ needs.release.outputs.tag }}
+          name: ${{ needs.release.outputs.name }}
+          allowUpdates: true
+          prerelease: ${{ needs.release.outputs.prerelease }}
+          body: ""
 
-  x86_64-apple-darwin:
-    runs-on: macos-12
-    needs: [ deps, release ]
+  check-fmt:
+    env:
+      CARGO_TERM_COLOR: never
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Download Deps
-        uses: actions/download-artifact@v3
-        with:
-          name: crate-deps
-      - name: Move Deps
+      - uses: actions/checkout@v4
+      - name: Install nightly
+        run: rustup toolchain install nightly --allow-downgrade -c rustfmt
+      - name: Rustfmt Check
         run: |
-          mv ./.cargo-store/* ~/.cargo
-      - uses: actions/cache@v3
-        with:
-          path: |
-            target
-          key: ${{ runner.os }}-x86_64-apple-darwin-${{ hashFiles('**/Cargo.toml') }}
-      - name: Update Rust
-        run: rustup update
-      - name: Rust Version
-        run: rustc --version
-      - name: Run tests
-        run: cargo test --verbose --workspace --all-features --release
-      - name: Build
-        run: cargo build --verbose --workspace --release
+          set -o pipefail
+          cargo +nightly fmt --check 2>&1 | tee .step-data.txt
+      - name: Put into summary (success)
+        if: success()
+        run: echo "Success" >> $GITHUB_STEP_SUMMARY
+      - name: Put into summary (failure)
+        if: failure()
+        run: |
+          echo "Failed!" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`shell" >> $GITHUB_STEP_SUMMARY
+          cat .step-data.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
-  aarch64-apple-darwin:
-    runs-on: macos-12
-    needs: [ deps, release ]
+  clippy:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+    env:
+      CARGO_TERM_COLOR: never
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
-      - name: Download Deps
-        uses: actions/download-artifact@v3
-        with:
-          name: crate-deps
-      - name: Move Deps
-        run: |
-          mv ./.cargo-store/* ~/.cargo
-      - uses: actions/cache@v3
-        with:
-          path: |
-            target
-          key: ${{ runner.os }}-aarch64-apple-darwin-${{ hashFiles('**/Cargo.toml') }}
+      - uses: actions/checkout@v4
       - name: Update Rust
-        run: rustup update
-      - name: Rust Version
-        run: rustc --version
-      - name: Add Rust target
-        run: rustup target add aarch64-apple-darwin
-      - name: Build
-        run: cargo build --verbose --workspace --target aarch64-apple-darwin --release
+        run: |
+          rustup update
+          rustc --version
+      - uses: Swatinem/rust-cache@v2
+        if: ${{ env.cache == 'true' }}
+      - name: Clippy Check
+        shell: bash
+        run: |
+          set -o pipefail
+          cargo clippy --all-targets --verbose --workspace --release --locked -- -D warnings 2>&1 | tee .step-data.txt
+          cargo clippy --all-targets --verbose --workspace --release --locked ${{ env.feature-set }} -- -D warnings 2>&1 | tee .step-data.txt
+      - name: Put into summary (success)
+        if: success()
+        shell: bash
+        run: echo "Success" >> $GITHUB_STEP_SUMMARY
+      - name: Put into summary (failure)
+        if: failure()
+        shell: bash
+        run: |
+          echo "Failed!" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`shell" >> $GITHUB_STEP_SUMMARY
+          cat .step-data.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
-  x86_64-pc-windows-msvc:
-    runs-on: windows-latest
-    needs: [ deps, release ]
+  cargo-hack:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+    env:
+      CARGO_TERM_COLOR: never
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
-      - name: Download Deps
-        uses: actions/download-artifact@v3
-        with:
-          name: crate-deps
-      - name: Move Deps
-        run: |
-          mv ./.cargo-store/* ~/.cargo
-      - uses: actions/cache@v3
-        with:
-          path: |
-            target
-          key: ${{ runner.os }}-x86_64-pc-windows-msvc-${{ hashFiles('**/Cargo.toml') }}
+      - uses: actions/checkout@v4
       - name: Update Rust
-        run: rustup update
-      - name: Rust Version
-        run: rustc --version
-      - name: Run tests
-        run: cargo test --verbose --workspace --all-features --release
-      - name: Build
-        run: cargo build --verbose --workspace --release
+        run: |
+          rustup update
+          rustc --version
+      - uses: cargo-prebuilt/cargo-prebuilt-action@v3
+        with:
+          pkgs: cargo-hack
+      - uses: Swatinem/rust-cache@v2
+        if: ${{ env.cache == 'true' }}
+      - name: Hack Check (each-feature)
+        shell: bash
+        run: |
+          set -o pipefail
+          cargo hack check --each-feature --no-dev-deps --verbose --workspace --release --locked 2>&1 | tee .step-data.txt
+      - name: Hack Check (feature-powerset)
+        shell: bash
+        run: |
+          set -o pipefail
+          cargo hack check --feature-powerset ${{ env.hack-group }} --no-dev-deps --verbose --workspace --release --locked 2>&1 | tee .step-data.txt
+      - name: Put into summary (success)
+        if: success()
+        shell: bash
+        run: echo "Success" >> $GITHUB_STEP_SUMMARY
+      - name: Put into summary (failure)
+        if: failure()
+        shell: bash
+        run: |
+          echo "Failed!" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`shell" >> $GITHUB_STEP_SUMMARY
+          cat .step-data.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
-  i686-pc-windows-msvc:
-    runs-on: windows-latest
-    needs: [ deps, release ]
+  cargo-msrv:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+    env:
+      CARGO_TERM_COLOR: never
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
-      - name: Download Deps
-        uses: actions/download-artifact@v3
-        with:
-          name: crate-deps
-      - name: Move Deps
+      - uses: actions/checkout@v4
+      - name: Update Rust
         run: |
-          mv ./.cargo-store/* ~/.cargo
-      - uses: actions/cache@v3
+          rustup update
+          rustc --version
+      - uses: cargo-prebuilt/cargo-prebuilt-action@v3
+        with:
+          pkgs: cargo-binstall
+      - name: Install cargo-msrv
+        run: cargo binstall --version 0.15.1 --no-confirm cargo-msrv
+      - uses: Swatinem/rust-cache@v2
+        if: ${{ env.cache == 'true' }}
+      - name: MSRV Check
+        shell: bash
+        run: |
+          set -o pipefail
+          cargo msrv verify -- cargo check --verbose --release --locked 2>&1 | tee .step-data.txt
+      - name: Put into summary (success)
+        if: success()
+        shell: bash
+        run: echo "Success" >> $GITHUB_STEP_SUMMARY
+      - name: Put into summary (failure)
+        if: failure()
+        shell: bash
+        run: |
+          echo "Failed!" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`shell" >> $GITHUB_STEP_SUMMARY
+          cat .step-data.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  cargo-deny:
+    env:
+      CARGO_TERM_COLOR: never
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update Rust
+        run: |
+          rustup update
+          rustc --version
+      - uses: cargo-prebuilt/cargo-prebuilt-action@v3
+        with:
+          pkgs: cargo-deny
+      - name: Cargo Deny
+        shell: bash
+        run: |
+          set -o pipefail
+          cargo deny check 2>&1 | tee .step-data.txt
+      - name: Put into summary (success)
+        if: success()
+        shell: bash
+        run: echo "Success" >> $GITHUB_STEP_SUMMARY
+      - name: Put into summary (failure)
+        if: failure()
+        shell: bash
+        run: |
+          echo "Failed!" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`shell" >> $GITHUB_STEP_SUMMARY
+          cat .step-data.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  reports:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update Rust
+        run: |
+          rustup update
+          rustc --version
+      - uses: cargo-prebuilt/cargo-prebuilt-action@v3
+        with:
+          pkgs: cargo-audit
+      - uses: Swatinem/rust-cache@v2
+        if: ${{ env.cache == 'true' }}
+      - name: Cache Advisory DB
+        uses: actions/cache@v3
         with:
           path: |
-            target
-          key: ${{ runner.os }}-i686-pc-windows-msvc-${{ hashFiles('**/Cargo.toml') }}
-      - name: Update Rust
-        run: rustup update
-      - name: Rust Version
-        run: rustc --version
-      - name: Add Rust target
-        run: rustup target add i686-pc-windows-msvc
+            ~/.cargo/advisory-db
+          key: cache-advisory-db
+      - name: Deps Report
+        run: |
+          test -f Cargo.lock || cargo generate-lockfile --verbose
+          echo "### Deps:" >> $GITHUB_STEP_SUMMARY
+          echo "Generated on: $(date --utc)" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cargo tree --verbose -e normal,build --locked >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+      - name: Audit Report
+        run: |
+          echo "### Audit:" >> $GITHUB_STEP_SUMMARY
+          echo "Generated on: $(date --utc)" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cargo audit >> $GITHUB_STEP_SUMMARY || true
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  ink-cross:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: aarch64-unknown-linux-gnu
+            can-test: false
+          - target: aarch64-unknown-linux-musl
+            can-test: false
+          - target: armv7-unknown-linux-gnueabihf
+            can-test: false
+          - target: armv7-unknown-linux-musleabihf
+            can-test: false
+          - target: powerpc64le-unknown-linux-gnu
+            can-test: false
+          - target: riscv64gc-unknown-linux-gnu
+            can-test: false
+          - target: s390x-unknown-linux-gnu
+            can-test: false
+          - target: x86_64-unknown-linux-gnu
+            can-test: true
+          - target: x86_64-unknown-linux-musl
+            can-test: true
+    runs-on: ubuntu-latest
+    needs: [ check-fmt, clippy, cargo-hack, cargo-msrv, cargo-deny ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+        if: ${{ env.cache == 'true' }}
       - name: Run tests
-        run: cargo test --verbose --workspace --all-features --release --target i686-pc-windows-msvc
+        if: ${{ matrix.can-test }}
+        run: |
+          docker run --rm \
+          --userns host --user $(id -u):$(id -g) \
+          -v ./:/project \
+          ghcr.io/cargo-prebuilt/ink-cross:stable-${{ matrix.target }} \
+          test --verbose --workspace --release --locked --target ${{ matrix.target }} ${{ env.feature-set }}
       - name: Build
-        run: cargo build --verbose --workspace --target i686-pc-windows-msvc --release
+        run: |
+          docker run --rm \
+          --userns host --user $(id -u):$(id -g) \
+          -v ./:/project \
+          ghcr.io/cargo-prebuilt/ink-cross:stable-${{ matrix.target }} \
+          build --verbose --workspace --release --locked --target ${{ matrix.target }} ${{ env.feature-set }}
 
   cross:
     strategy:
       fail-fast: false
       matrix:
-        target:
-          - x86_64-unknown-linux-musl
-          - aarch64-unknown-linux-gnu
-          - aarch64-unknown-linux-musl
-          - riscv64gc-unknown-linux-gnu
-          - s390x-unknown-linux-gnu
-          - armv7-unknown-linux-gnueabihf
-          - armv7-unknown-linux-musleabihf
+        include:
+          - target: x86_64-unknown-freebsd
+            can-test: false
+          - target: x86_64-unknown-netbsd
+            can-test: false
+          - target: x86_64-unknown-illumos
+            can-test: false
+          - target: x86_64-sun-solaris
+            can-test: false
+          - target: powerpc64-unknown-linux-gnu
+            can-test: true
+          - target: x86_64-pc-windows-gnu
+            can-test: true
+            ending: .exe
     runs-on: ubuntu-latest
-    needs: [ deps, release ]
+    needs: [ check-fmt, clippy, cargo-hack, cargo-msrv, cargo-deny ]
     steps:
-      - uses: actions/checkout@v3
-      - name: Download Deps
-        uses: actions/download-artifact@v3
-        with:
-          name: crate-deps
-      - name: Move Deps
+      - uses: actions/checkout@v4
+      - name: Update Rust and add target
         run: |
-          mv ./.cargo-store/* ~/.cargo
-      - uses: actions/cache@v3
+          rustup update
+          rustc --version
+          rustup target add ${{ matrix.target }}
+      - uses: cargo-prebuilt/cargo-prebuilt-action@v3
         with:
-          path: |
-            target
-          key: ${{ runner.os }}-${{ matrix.target }}-${{ hashFiles('**/Cargo.toml') }}
-      - name: Update Rust
-        run: rustup update
-      - name: Rust Version
-        run: rustc --version
-      - uses: taiki-e/install-action@v2
-        with:
-          tool: cross
+          pkgs: cross
+      - uses: Swatinem/rust-cache@v2
+        if: ${{ env.cache == 'true' }}
+      - name: Run tests
+        if: ${{ matrix.can-test }}
+        run: cross test --verbose --workspace --release --locked --target ${{ matrix.target }} ${{ env.feature-set }}
       - name: Build
-        run: cross build --verbose --workspace --target ${{ matrix.target }} --release
+        run: cross build --verbose --workspace --release --locked --target ${{ matrix.target }} ${{ env.feature-set }}
+
+  apple-darwin:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-apple-darwin
+            can-test: true
+          - target: aarch64-apple-darwin
+            can-test: false
+    runs-on: macos-latest
+    needs: [ check-fmt, clippy, cargo-hack, cargo-msrv, cargo-deny ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update Rust and add target
+        run: |
+          rustup update
+          rustc --version
+          rustup target add ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        if: ${{ env.cache == 'true' }}
+      - name: Run tests
+        if: ${{ matrix.can-test }}
+        run: cargo test --verbose --workspace --release --locked --target ${{ matrix.target }} ${{ env.feature-set }}
+      - name: Build
+        run: cargo build --verbose --workspace --release --locked --target ${{ matrix.target }} ${{ env.feature-set }}
+
+  pc-windows-msvc:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-pc-windows-msvc
+            can-test: true
+          - target: aarch64-pc-windows-msvc
+            can-test: false
+    runs-on: windows-latest
+    needs: [ check-fmt, clippy, cargo-hack, cargo-msrv, cargo-deny ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update Rust and add target
+        run: |
+          rustup update
+          rustc --version
+          rustup target add ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        if: ${{ env.cache == 'true' }}
+      - name: Run tests
+        if: ${{ matrix.can-test }}
+        run: cargo test --verbose --workspace --release --locked --target ${{ matrix.target }} ${{ env.feature-set }}
+      - name: Build
+        run: cargo build --verbose --workspace --release --locked --target ${{ matrix.target }} ${{ env.feature-set }}
