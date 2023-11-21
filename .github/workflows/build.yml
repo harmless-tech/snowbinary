@@ -51,14 +51,14 @@ jobs:
           --userns host --user $(id -u):$(id -g) \
           -v ./:/project \
           ghcr.io/cargo-prebuilt/ink-cross:stable-${{ matrix.target }} \
-          test --verbose --workspace --locked --target ${{ matrix.target }} ${{ env.feature-set }}
+          test --verbose --workspace --target ${{ matrix.target }} ${{ env.feature-set }}
       - name: Build with ink cross
         run: |
           docker run --rm \
           --userns host --user $(id -u):$(id -g) \
           -v ./:/project \
           ghcr.io/cargo-prebuilt/ink-cross:stable-${{ matrix.target }} \
-          build --verbose --workspace --locked --target ${{ matrix.target }} ${{ env.feature-set }}
+          build --verbose --workspace --target ${{ matrix.target }} ${{ env.feature-set }}
 
   cross:
     strategy:
@@ -94,9 +94,9 @@ jobs:
           key: ${{ matrix.target }}
       - name: Run tests
         if: ${{ matrix.can-test }}
-        run: cross test --verbose --workspace --locked --target ${{ matrix.target }} ${{ env.feature-set }}
+        run: cross test --verbose --workspace --target ${{ matrix.target }} ${{ env.feature-set }}
       - name: Build
-        run: cross build --verbose --workspace --locked --target ${{ matrix.target }} ${{ env.feature-set }}
+        run: cross build --verbose --workspace --target ${{ matrix.target }} ${{ env.feature-set }}
 
   apple-darwin:
     strategy:
@@ -120,9 +120,9 @@ jobs:
           key: ${{ matrix.target }}
       - name: Run tests
         if: ${{ matrix.can-test }}
-        run: cargo test --verbose --workspace --locked --target ${{ matrix.target }} ${{ env.feature-set }}
+        run: cargo test --verbose --workspace --target ${{ matrix.target }} ${{ env.feature-set }}
       - name: Build
-        run: cargo build --verbose --workspace --locked --target ${{ matrix.target }} ${{ env.feature-set }}
+        run: cargo build --verbose --workspace --target ${{ matrix.target }} ${{ env.feature-set }}
 
   pc-windows-msvc:
     strategy:
@@ -146,6 +146,6 @@ jobs:
           key: ${{ matrix.target }}
       - name: Run tests
         if: ${{ matrix.can-test }}
-        run: cargo test --verbose --workspace --locked --target ${{ matrix.target }} ${{ env.feature-set }}
+        run: cargo test --verbose --workspace --target ${{ matrix.target }} ${{ env.feature-set }}
       - name: Build
-        run: cargo build --verbose --workspace --locked --target ${{ matrix.target }} ${{ env.feature-set }}
+        run: cargo build --verbose --workspace --target ${{ matrix.target }} ${{ env.feature-set }}

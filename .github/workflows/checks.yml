@@ -60,7 +60,7 @@ jobs:
           echo "### Deps:" >> $GITHUB_STEP_SUMMARY
           echo "Generated on: $(date --utc)" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          cargo tree --verbose -e normal,build --locked >> $GITHUB_STEP_SUMMARY
+          cargo tree --verbose -e normal,build >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
       - name: Audit Report
         run: |
@@ -95,8 +95,8 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          cargo clippy --all-targets --verbose --workspace --locked -- -D warnings 2>&1 | tee .step-data.txt
-          cargo clippy --all-targets --verbose --workspace --locked ${{ env.feature-set }} -- -D warnings 2>&1 | tee .step-data.txt
+          cargo clippy --all-targets --verbose --workspace -- -D warnings 2>&1 | tee .step-data.txt
+          cargo clippy --all-targets --verbose --workspace ${{ env.feature-set }} -- -D warnings 2>&1 | tee .step-data.txt
       - name: Put into summary (success)
         if: success()
         shell: bash
@@ -138,12 +138,12 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          cargo hack check --each-feature --no-dev-deps --verbose --workspace --locked 2>&1 | tee .step-data.txt
+          cargo hack check --each-feature --no-dev-deps --verbose --workspace 2>&1 | tee .step-data.txt
       - name: Hack Check (feature-powerset)
         shell: bash
         run: |
           set -o pipefail
-          cargo hack check --feature-powerset ${{ env.hack-group }} --no-dev-deps --verbose --workspace --locked 2>&1 | tee .step-data.txt
+          cargo hack check --feature-powerset ${{ env.hack-group }} --no-dev-deps --verbose --workspace 2>&1 | tee .step-data.txt
       - name: Put into summary (success)
         if: success()
         shell: bash

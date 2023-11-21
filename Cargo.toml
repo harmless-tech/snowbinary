@@ -8,6 +8,7 @@ readme = "README.md"
 repository = "https://github.com/harmless-tech/snowbinary"
 license = "MIT"
 keywords = ["file"]
+rust-version = "1.66"
 include = [
     "src/",
     "Cargo.toml",
