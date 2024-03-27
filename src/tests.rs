@@ -11,10 +11,10 @@ mod default_tests {
         SnowBinInfo::new(8, 16)?;
         SnowBinInfo::new(8, 32)?;
         SnowBinInfo::new(8, 64)?;
-        SnowBinInfo::new(34785382, 8)?;
-        SnowBinInfo::new(7543454, 16)?;
-        SnowBinInfo::new(7843463, 32)?;
-        SnowBinInfo::new(45646234, 64)?;
+        SnowBinInfo::new(34_785_382, 8)?;
+        SnowBinInfo::new(7_543_454, 16)?;
+        SnowBinInfo::new(7_843_463, 32)?;
+        SnowBinInfo::new(45_646_234, 64)?;
         SnowBinInfo::new(u32::MAX, 8)?;
         SnowBinInfo::new(u32::MAX, 16)?;
         SnowBinInfo::new(u32::MAX, 32)?;
@@ -56,11 +56,11 @@ mod default_tests {
     fn h_test() -> Result<(), SnowBinError> {
         {
             let info = SnowBinInfo::new(8, 64)?;
-            let mut writer = SnowBinWriter::new(&info, PathBuf::from("./file.temp"))?;
+            let mut writer = SnowBinWriter::new(info, PathBuf::from("./file.temp"))?;
 
-            writer.write("TEST", "This is a String!".as_bytes())?;
-            writer.write("TEST321", "This is a String!".as_bytes())?;
-            writer.write("Header", "This is for doc tests!".as_bytes())?;
+            writer.write("TEST", b"This is a String!")?;
+            writer.write("TEST321", b"This is a String!")?;
+            writer.write("Header", b"This is for doc tests!")?;
 
             writer.close()?;
         }
@@ -72,7 +72,7 @@ mod default_tests {
             assert_eq!(
                 reader.read("NULL_NO").unwrap_err(),
                 SnowBinError::ReachedEOF
-            )
+            );
         }
 
         Ok(())

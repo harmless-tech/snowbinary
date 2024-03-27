@@ -16,6 +16,7 @@ check:
     cargo +nightly fmt --check
     cargo clippy --all-targets --locked --workspace -- -D warnings
     cargo clippy --all-targets --locked --workspace --release -- -D warnings
+    cargo deny check
 
 docker:
     docker run -it --rm --pull=always \
@@ -67,7 +68,7 @@ msrv:
     --mount type=bind,source=$HOME/.cargo/registry,target=/usr/local/cargo/registry \
     -w /project \
     rust:latest \
-    bash -c 'cargo install cargo-msrv --version 0.16.0-beta.14 --profile=dev && cargo msrv -- cargo check --verbose --locked'
+    bash -c 'cargo install cargo-msrv --version 0.16.0-beta.20 --profile=dev && cargo msrv -- cargo check --verbose --locked'
 
 msrv-verify:
     docker run -t --rm --pull=always \
@@ -76,4 +77,4 @@ msrv-verify:
     --mount type=bind,source=$HOME/.cargo/registry,target=/usr/local/cargo/registry \
     -w /prebuilt \
     rust:latest \
-    bash -c 'cargo install cargo-msrv --version 0.16.0-beta.14 --profile=dev && cargo msrv verify -- cargo check --verbose --release --locked'
+    bash -c 'cargo install cargo-msrv --version 0.16.0-beta.20 --profile=dev && cargo msrv verify -- cargo check --verbose --release --locked'

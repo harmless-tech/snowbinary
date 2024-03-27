@@ -4,20 +4,18 @@ use crate::error::SnowBinError;
 
 #[inline]
 pub fn error(result: std::io::Result<usize>) -> Result<usize, SnowBinError> {
-    match result {
-        Ok(r) => Ok(r),
-        Err(_) => Err(SnowBinError::IOReadError),
-    }
+    result.map_or(Err(SnowBinError::IOWriteError), Ok)
 }
 
 pub fn read_header(file: &mut File, header_len: u32) -> Result<String, SnowBinError> {
     let mut buffer = vec![32_u8; header_len as usize];
-    error(file.by_ref().take(header_len as u64).read(&mut buffer))?;
+    error(file.by_ref().take(u64::from(header_len)).read(&mut buffer))?;
 
     String::from_utf8(buffer).map_err(|_| SnowBinError::MalformedHeader)
 }
 
 pub fn read_bytes(file: &mut File, length: u64) -> Result<Vec<u8>, SnowBinError> {
+    #[allow(clippy::cast_possible_truncation)]
     let mut buffer = vec![0_u8; length as usize];
     error(file.by_ref().take(length).read(&mut buffer))?;
 

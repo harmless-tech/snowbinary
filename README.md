@@ -14,7 +14,7 @@ A basic header based binary file format, writer and reader.
 {
     let info = SnowBinInfo::default();    
 
-    let writer = SnowBinWriter::new(&info, PATH as PathBuf)?;
+    let writer = SnowBinWriter::new(info, PATH as PathBuf)?;
     writer.write("Header", DATA as &[u8])?;
 } // File is flushed when writer.close() is called or when writer is dropped.
 

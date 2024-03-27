@@ -1,4 +1,5 @@
-/// Types of errors that can occur when using SnowBinInfo, SnowBinWriter, and SnowBinReader.
+/// Types of errors that can occur when using `SnowBinInfo`, `SnowBinWriter`, and `SnowBinReader`.
+#[allow(clippy::module_name_repetitions)]
 #[derive(Debug, Eq, PartialEq)]
 pub enum SnowBinError {
     /// The data size used is not 8, 16, 32, or 64.
@@ -31,30 +32,30 @@ pub enum SnowBinError {
 impl std::fmt::Display for SnowBinError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            SnowBinError::DataSizeNotAllowed => write!(f, "Data Size is not 8, 16, 32, or 64."),
-            SnowBinError::CouldNotCreateOrOpenFile => {
+            Self::DataSizeNotAllowed => write!(f, "Data Size is not 8, 16, 32, or 64."),
+            Self::CouldNotCreateOrOpenFile => {
                 write!(f, "Could not create or open the file.")
             }
-            SnowBinError::IOWriteError => write!(f, "Could not write to the file."),
-            SnowBinError::HeaderSizeTooSmall => write!(f, "Header must be at least 8 bytes."),
-            SnowBinError::HeaderTooLong => write!(f, "Header exceeds max header length."),
-            SnowBinError::IOWriterClosed => {
+            Self::IOWriteError => write!(f, "Could not write to the file."),
+            Self::HeaderSizeTooSmall => write!(f, "Header must be at least 8 bytes."),
+            Self::HeaderTooLong => write!(f, "Header exceeds max header length."),
+            Self::IOWriterClosed => {
                 write!(f, "Could not write to the file because it was closed.")
             }
-            SnowBinError::DataTooLong => write!(f, "Data exceeds max length."),
-            SnowBinError::IOReadError => write!(f, "Could not read from the file."),
-            SnowBinError::MalformedHeader => {
+            Self::DataTooLong => write!(f, "Data exceeds max length."),
+            Self::IOReadError => write!(f, "Could not read from the file."),
+            Self::MalformedHeader => {
                 write!(f, "File did not start with \"SNOW_BIN\" header.")
             }
-            SnowBinError::MalformedUInt => {
+            Self::MalformedUInt => {
                 write!(f, "Could not pull a uint from the file when expected.")
             }
-            SnowBinError::WrongSpecVersion => write!(f, "Spec version does not match."),
-            SnowBinError::ReachedEOF => write!(
+            Self::WrongSpecVersion => write!(f, "Spec version does not match."),
+            Self::ReachedEOF => write!(
                 f,
                 "Reached the end of the file, without finding the header specified."
             ),
-            SnowBinError::HashDoesNotMatch => {
+            Self::HashDoesNotMatch => {
                 write!(f, "Verification hash did not match data hash.")
             }
         }

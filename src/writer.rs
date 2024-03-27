@@ -4,10 +4,7 @@ use crate::error::SnowBinError;
 
 #[inline]
 pub fn error(result: std::io::Result<()>) -> Result<(), SnowBinError> {
-    match result {
-        Ok(r) => Ok(r),
-        Err(_) => Err(SnowBinError::IOWriteError),
-    }
+    result.map_or(Err(SnowBinError::IOWriteError), Ok)
 }
 
 pub fn write_header(
@@ -15,11 +12,11 @@ pub fn write_header(
     header: &str,
     header_len: u32,
 ) -> Result<Vec<u8>, SnowBinError> {
-    if header.len() as u32 > header_len {
+    if header.len() > header_len as usize {
         return Err(SnowBinError::HeaderTooLong);
     }
 
-    let null_buffer = vec![32_u8; (header_len - header.len() as u32) as usize];
+    let null_buffer = vec![32_u8; header_len as usize - header.len()];
     let buffer = [header.as_bytes(), &null_buffer].concat();
 
     error(file.by_ref().write_all(&buffer))?;
