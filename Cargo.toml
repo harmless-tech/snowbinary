@@ -6,8 +6,9 @@ edition = "2021"
 description = "A header based system for writing and reading binary files using its own format"
 readme = "README.md"
 repository = "https://github.com/harmless-tech/snowbinary"
-license = "MIT"
+license = "MIT OR Apache-2.0"
 keywords = ["file"]
+categories = ["filesystem"]
 rust-version = "1.66"
 include = [
     "src/",
