@@ -101,7 +101,7 @@ impl SnowBinWriter {
     ///
     /// use snowbinary::{SnowBinInfo, SnowBinWriter};
     ///
-    /// let writer = SnowBinWriter::new(&SnowBinInfo::default(), PathBuf::from("file.temp"));
+    /// let writer = SnowBinWriter::new(SnowBinInfo::default(), PathBuf::from("file.temp"));
     /// ```
     /// # Errors
     /// Returns `SnowBinError` if the file could not be created or opened, or the file cannot be written to.
@@ -149,9 +149,9 @@ impl SnowBinWriter {
     /// ```
     /// use std::path::PathBuf;
     ///
-    /// use snowbinary::{error::SnowBinError, SnowBinInfo, SnowBinWriter};
+    /// use snowbinary::{SnowBinError, SnowBinInfo, SnowBinWriter};
     ///
-    /// let mut writer = SnowBinWriter::new(&SnowBinInfo::default(), PathBuf::from("file.temp"));
+    /// let mut writer = SnowBinWriter::new(SnowBinInfo::default(), PathBuf::from("file.temp"));
     /// match &mut writer {
     ///     Ok(writer) => {
     ///         writer.write("Header", "This is data!".as_bytes()).unwrap();
@@ -222,9 +222,9 @@ impl SnowBinWriter {
     /// ```
     /// use std::path::PathBuf;
     ///
-    /// use snowbinary::{error::SnowBinError, SnowBinInfo, SnowBinWriter};
+    /// use snowbinary::{SnowBinError, SnowBinInfo, SnowBinWriter};
     ///
-    /// let mut writer = SnowBinWriter::new(&SnowBinInfo::default(), PathBuf::from("file.temp"));
+    /// let mut writer = SnowBinWriter::new(SnowBinInfo::default(), PathBuf::from("file.temp"));
     /// match &mut writer {
     ///     Ok(writer) => {
     ///         writer.write("Header", "This is data!".as_bytes()).unwrap();
@@ -355,7 +355,7 @@ impl SnowBinReader {
     /// ```
     /// use std::path::PathBuf;
     ///
-    /// use snowbinary::{error::SnowBinError, SnowBinInfo, SnowBinReader};
+    /// use snowbinary::{SnowBinError, SnowBinInfo, SnowBinReader};
     ///
     /// let mut reader = SnowBinReader::new(PathBuf::from("file.temp"));
     /// match &mut reader {
