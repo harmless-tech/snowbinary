@@ -71,8 +71,6 @@ jobs:
             can-test: false
           - target: x86_64-unknown-illumos
             can-test: false
-          - target: x86_64-sun-solaris
-            can-test: false
           - target: powerpc64-unknown-linux-gnu
             can-test: true
           - target: x86_64-pc-windows-gnu
