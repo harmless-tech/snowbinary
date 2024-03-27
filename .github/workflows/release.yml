@@ -367,9 +367,9 @@ jobs:
       matrix:
         include:
           - target: x86_64-apple-darwin
-            can-test: true
+            os: macos-13
           - target: aarch64-apple-darwin
-            can-test: false
+            os: macos-14
     runs-on: macos-latest
     needs: [ check-fmt, clippy, cargo-hack, cargo-msrv, cargo-deny ]
     steps:
@@ -382,7 +382,6 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         if: ${{ env.cache == 'true' }}
       - name: Run tests
-        if: ${{ matrix.can-test }}
         run: cargo test --verbose --workspace --release --target ${{ matrix.target }} ${{ env.feature-set }}
       - name: Build
         run: cargo build --verbose --workspace --release --target ${{ matrix.target }} ${{ env.feature-set }}
