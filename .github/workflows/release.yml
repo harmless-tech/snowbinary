@@ -259,7 +259,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         if: ${{ env.cache == 'true' }}
       - name: Cache Advisory DB
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/advisory-db
@@ -370,7 +370,7 @@ jobs:
             os: macos-13
           - target: aarch64-apple-darwin
             os: macos-14
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
     needs: [ check-fmt, clippy, cargo-hack, cargo-msrv, cargo-deny ]
     steps:
       - uses: actions/checkout@v4
